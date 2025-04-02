@@ -1,55 +1,86 @@
 <!DOCTYPE html>
-
-<html>   
-
+<html lang="pt-br">
    <head>
-
-      <meta charset="UTF-8">      
-
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Cervejas</title>
+      <link rel="stylesheet" href="style.css">
    </head>
-
-   
-
    <body>
+      <div id="meu-amor">
+         <button id="botaoCarregar">Carregando cervejas...</button>
+         <button id="botaoOrdenar">Mostrar cervejas ordenadas</button>
+         <button id="botaoEmbaralhar">Embaralhar cervejas</button>
+         <button id="botaoOcultar">Ocultar cervejas</button> 
+      </div>
 
-      <div id="meu amor"><button id="botaoCarregar">Carregando cervejas...</button></div>            
+      <script>
+         let cervejas = [
+         "Guinness", "Desperados", "Becks", "Heineken", "Corona", 
+         "Budweiser", "Stella Artois", "Skol", "Brahma", "Antarctica", 
+         "Eisenbahn", "Paulaner", "Hoegaarden", "Kaiser", "Amstel"
+         ];
 
-   </body>   
+         function carregarTabela() {
+            exibirTabela(cervejas);
+         }
 
-   
+         function ordenarEExibir() {
+            cervejas.sort(); 
+            exibirTabela(cervejas);
+         }
 
-   <script>
+         function embaralharEExibir() {
+            cervejas.sort(() => Math.random() - 0.5);
+            exibirTabela(cervejas);
+         }
 
-      let cervejas = ["Guiness", "Desperados", "Becks"]
+         function exibirTabela(lista) {
+            let tabelaHtml = `
+               <table id="tabelaCervejas">
+                  <thead>
+                     <tr>
+                        <th>Cervejas</th>
+                     </tr>
+                  </thead>
+                  <tbody>
+                     ${lista.map(nome => `<tr     "Guinness", "Desperados", "Becks", "Heineken", "Corona", 
+         "Budweiser", "Stella Artois", "Skol", "Brahma", "Antarctica", 
+         "Eisenbahn", "Paulaner", "Hoegaarden", "Kaiser", "Amstel",
+         "Bud Light", "Original Müller", "Beck's Gold", "Efes", "Carlsberg", 
+         "Guarany", "Xingu", "Cerveja Colorado", "Cerveja Serra Malte", "Devassa"
+         ];><td>${nome}</td></tr>`).join("")}
+                  </tbody>
+               </table>
+            `;
 
-      
+            let div = document.getElementById("meu-amor");
+            div.innerHTML = tabelaHtml;
 
-      function transformar(item){
+            div.insertAdjacentHTML('beforeend', `
+               <button id="botaoCarregar">Carregando cervejas...</button>
+               <button id="botaoOrdenar">Mostrar cervejas ordenadas</button>
+               <button id="botaoEmbaralhar">Embaralhar cervejas</button>
+               <button id="botaoOcultar">Ocultar cervejas</button>
+            `);
 
-         return `<h1>${item}</h1>`
+            document.getElementById("botaoCarregar").addEventListener("click", carregarTabela);
+            document.getElementById("botaoOrdenar").addEventListener("click", ordenarEExibir);
+            document.getElementById("botaoEmbaralhar").addEventListener("click", embaralharEExibir);
+            document.getElementById("botaoOcultar").addEventListener("click", ocultarTabela); 
+         }
 
-      }
+         function ocultarTabela() {
+            let tabela = document.getElementById("tabelaCervejas");
+            if (tabela) {
+                tabela.style.display = tabela.style.display === "none" ? "table" : "none";
+            }
+         }
 
-      
-
-      function carregarDiv(){
-
-         let div = document.getElementById("meu amor")
-
-         //let cervejasHtml = [`<h1>${cervejas[0]}</h1>`,`<h1>${cervejas[1]}</h1>`, `<h1>${cervejas[2]}</h1>`] 
-
-         let cervejasHtml = cervejas.map(transformar) 
-
-         div.innerHTML = `${cervejasHtml.join("\n")}`
-
-      }
-
-      
-
-      let botao = document.getElementById("botaoCarregar")
-
-      botao.addEventListener("click", carregarDiv)                 
-
-   </script>
-
+         document.getElementById("botaoCarregar").addEventListener("click", carregarTabela);
+         document.getElementById("botaoOrdenar").addEventListener("click", ordenarEExibir);
+         document.getElementById("botaoEmbaralhar").addEventListener("click", embaralharEExibir);
+         document.getElementById("botaoOcultar").addEventListener("click", ocultarTabela); 
+      </script>
+   </body>
 </html>
