@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 
 <html>   
@@ -25,11 +24,23 @@
 
       
 
+      function transformar(item){
+
+         return `<h1>${item}</h1>`
+
+      }
+
+      
+
       function carregarDiv(){
 
          let div = document.getElementById("meu amor")
 
-         div.innerHTML = `<h1>${cervejas}</h1>`
+         //let cervejasHtml = [`<h1>${cervejas[0]}</h1>`,`<h1>${cervejas[1]}</h1>`, `<h1>${cervejas[2]}</h1>`] 
+
+         let cervejasHtml = cervejas.map(transformar) 
+
+         div.innerHTML = `${cervejasHtml.join("\n")}`
 
       }
 
