@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+   <meta charset="UTF-8">
+
+   <link href="estilo.css" rel="stylesheet">
+
+</head>
+
+<title>JavaScript Básico</title>
+
+<body>
+
+   <div id="meu-amor"></div>
+
+   <div id="meu-amor1">
+
+      <button id="botao-carregar">Carregando cervejas...</button>
+
+   </div>
+
+</body>
+
+<script>
+
+   let estado = 0;
+
+   function carregarDiv() {
+
+      let div = document.getElementById("meu-amor");
+
+      if (!estado) 
+      {
+
+         div.innerHTML = "<h1>Guinness</h1>"; 
+
+      } 
+      
+      else 
+      {
+
+         div.innerHTML = "";
+
+      }
+
+      div.classList.toggle("exibir"); 
+
+      estado = !estado;
+   }
+
+   let botao = document.getElementById("botao-carregar"); 
+
+   botao.addEventListener("click", carregarDiv);
+
+</script>
+
+</html>
