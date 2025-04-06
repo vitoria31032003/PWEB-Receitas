@@ -1,61 +1,102 @@
 <!DOCTYPE html>
 
-<html>   
+<html lang="pt-br">
 
-   <head>
+<head>
 
-      <meta charset="UTF-8">      
-      
-      <link href="estilo.css" rel="stylesheet">
+  <meta charset="UTF-8">
 
-   </head>
+  <title>JavaScript Básico 2</title>
 
-   <title>Java Script Básico 2</title>
+  </style>
 
-   <body>
+</head>
 
-      <div id="meu-amor"></div>            
+<body>
 
-      <button id="botao-carregar">Carregar cervejas</button>
+  <h1>Lista de Cervejas</h1>
 
-      <button id="botao-ordenar">Ordenar cervejas</button>
+  <button id="botaoCarregar">Carregar cervejas</button>
 
-      <button id="botao-ocultar">Ocultar cervejas</button>
+  <button id="botaoOrdenar">Ordenar alfabeticamente</button>
+  
+  <button id="botaoEmbaralhar">Embaralhar</button>
 
-   </body>   
+  <button id="botaoOcultar">Ocultar</button>
 
-   <script>
+  <div id="meu-amor"></div>
 
-      let cervejas = ["Guiness", "Desperados", "Becks", "Heineken", "Corona", "Skol", "Budweiser", "Stella Artois", "Antarctica", "Brahma"]
+  <script>
 
-      
+    const cervejas = [
+      "Guinness", "Desperados", "Becks", "Heineken", "Corona",
+      "Budweiser", "Stella Artois", "Skol", "Brahma", "Antarctica",
+      "Eisenbahn", "Paulaner", "Hoegaarden", "Kaiser", "Amstel",
+      "Bud Light", "Original Müller", "Beck's Gold", "Efes", "Carlsberg",
+      "Guarany", "Xingu", "Cerveja Colorado", "Cerveja Serra Malte", "Devassa"
+    ];
 
-      function transformar(item){
+    let exibindo = false;
 
-         
+    function exibirTabela(lista) {
 
-      }
+      const container = document.getElementById("meu-amor");
 
-      
+      const linhas = lista.map(nome => `<tr><td>${nome}</td></tr>`).join("");
 
-      function carregarDiv(){
+      const tabela = `
+        <table>
+          <thead>
+            <tr>
+              <th>Nome da Cerveja</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${linhas}
+          </tbody>
+        </table>
+      `;
 
-         let div = document.getElementById("meu amor")
+      container.innerHTML = tabela;
 
-         //let cervejasHtml = [`<h1>${cervejas[0]}</h1>`,`<h1>${cervejas[1]}</h1>`, `<h1>${cervejas[2]}</h1>`] 
+      exibindo = true;
+    }
 
-         let cervejasHtml = cervejas.map(transformar) 
+    function carregar() {
 
-         div.innerHTML = `${cervejasHtml.join("\n")}`
+      exibirTabela(cervejas);
+    }
 
-      }
+    function ordenar() {
 
-      
+      const ordenadas = [...cervejas].sort((a, b) => a.localeCompare(b));
 
-      let botao = document.getElementById("botaoCarregar")
+      exibirTabela(ordenadas);
+    }
 
-      botao.addEventListener("click", carregarDiv)                 
+    function embaralhar() {
 
-   </script>
+      const embaralhadas = [...cervejas].sort(() => Math.random() - 0.5);
 
+      exibirTabela(embaralhadas);
+    }
+
+    function ocultar() {
+
+      const container = document.getElementById("meu-amor");
+
+      container.innerHTML = "";
+
+      exibindo = false;
+    }
+
+    
+    document.getElementById("botaoCarregar").addEventListener("click", carregar);
+    document.getElementById("botaoOrdenar").addEventListener("click", ordenar);
+    document.getElementById("botaoEmbaralhar").addEventListener("click", embaralhar);
+    document.getElementById("botaoOcultar").addEventListener("click", ocultar);
+
+
+  </script>
+</body>
 </html>
