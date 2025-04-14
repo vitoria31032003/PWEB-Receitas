@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>   
+<head>
+   <meta charset="UTF-8">      
+   <link href="estilo.css" rel="stylesheet">
+   <title>Objetos JSON</title>
+</head>
+<body>
+
+   <div><button id="botaoCarregar">Carregando cervejas...</button></div>
+   <div id="cervejasDiv"></div>            
+
+   <script>
+      let cervejas = [
+         { name: "Guiness", alcohol: "10%" }, 
+         { name: "Desperados", alcohol: "6%" }, 
+         { name: "Becks", alcohol: "5%" }
+      ];
+
+      const carregarDiv = (cs) => {
+         const div = document.getElementById("cervejasDiv");
+
+         let tabelaHTML = `
+            <table border="1">
+               <thead>
+                  <tr>
+                     <th>Nome</th>
+                     <th>Álcool</th>
+                  </tr>
+               </thead>
+               <tbody>
+                  ${cs.map(item => `
+                     <tr>
+                        <td>${item.name}</td>
+                        <td>${item.alcohol}</td>
+                     </tr>
+                  `).join("")}
+               </tbody>
+            </table>
+         `;
+
+         div.innerHTML = tabelaHTML;
+      };
+
+      let botao = document.getElementById("botaoCarregar");
+      botao.addEventListener("click", () => carregarDiv(cervejas));
+   </script>
+
+</body>
+</html>
+
