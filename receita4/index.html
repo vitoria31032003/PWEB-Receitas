@@ -1,33 +1,22 @@
 <!DOCTYPE html>
-
 <html lang="pt-br">
-
 <head>
-
   <meta charset="UTF-8">
-
   <title>JavaScript Básico 2</title>
-
-  </style>
-
+  <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-
   <h1>Lista de Cervejas</h1>
 
   <button id="botaoCarregar">Carregar cervejas</button>
-
   <button id="botaoOrdenar">Ordenar alfabeticamente</button>
-  
   <button id="botaoEmbaralhar">Embaralhar</button>
-
   <button id="botaoOcultar">Ocultar</button>
 
   <div id="meu-amor"></div>
 
   <script>
-
     const cervejas = [
       "Guinness", "Desperados", "Becks", "Heineken", "Corona",
       "Budweiser", "Stella Artois", "Skol", "Brahma", "Antarctica",
@@ -39,7 +28,6 @@
     let exibindo = false;
 
     function exibirTabela(lista) {
-
       const container = document.getElementById("meu-amor");
 
       const linhas = lista.map(nome => `<tr><td>${nome}</td></tr>`).join("");
@@ -58,45 +46,35 @@
       `;
 
       container.innerHTML = tabela;
-
+      container.classList.add("exibir");
       exibindo = true;
     }
 
     function carregar() {
-
       exibirTabela(cervejas);
     }
 
     function ordenar() {
-
       const ordenadas = [...cervejas].sort((a, b) => a.localeCompare(b));
-
       exibirTabela(ordenadas);
     }
 
     function embaralhar() {
-
       const embaralhadas = [...cervejas].sort(() => Math.random() - 0.5);
-
       exibirTabela(embaralhadas);
     }
 
     function ocultar() {
-
       const container = document.getElementById("meu-amor");
-
       container.innerHTML = "";
-
+      container.classList.remove("exibir");
       exibindo = false;
     }
 
-    
     document.getElementById("botaoCarregar").addEventListener("click", carregar);
     document.getElementById("botaoOrdenar").addEventListener("click", ordenar);
     document.getElementById("botaoEmbaralhar").addEventListener("click", embaralhar);
     document.getElementById("botaoOcultar").addEventListener("click", ocultar);
-
-
   </script>
 </body>
 </html>

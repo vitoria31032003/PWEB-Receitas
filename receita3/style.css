@@ -1,35 +1,39 @@
 body {
-    font-family: Arial, Helvetica, sans-serif;
-    align-items: center;
-    background-color: rgb(250, 189, 128);
- }
- 
- #meu-amor {
-    opacity: 0; 
-    transition: opacity 1s; 
-    font-family: Arial, Helvetica, sans-serif;
-    text-align: center;
-    font-size: 500%;
- }
- 
- #meu-amor.exibir {
-    opacity: 1; 
- }
- 
- #meu-amor1 {
-    display: block;
-    margin: 10px auto;
-    padding: 5px 5px;
-    font-size: 10px;
-    background-color: #e4540c;
-    color: aliceblue;
-    border: none;
-    border-radius: 20px;
-    cursor: pointer;
-    font-family: Arial, Helvetica, sans-serif;
-    transition: background-color 0.3s ease;
-    text-align: center;
-    text-decoration: aliceblue;
-    width: 20%;
- }
- 
+   font-family: Arial, Helvetica, sans-serif;
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   height: 100vh;
+   margin: 0;
+   background-color: rgb(250, 189, 128);
+   text-align: center;
+}
+
+#meu-amor {
+   opacity: 0;
+   transition: opacity 1s ease-in-out;
+   font-size: 5rem;
+   color: #333;
+}
+
+#meu-amor.exibir {
+   opacity: 1;
+}
+
+#meu-amor1 {
+   margin-top: 20px;
+   padding: 10px 20px;
+   font-size: 1rem;
+   background-color: #e4540c;
+   color: #fff;
+   border: none;
+   border-radius: 25px;
+   cursor: pointer;
+   transition: background-color 0.3s ease, transform 0.2s;
+   width: 200px;
+}
+
+#meu-amor1:hover {
+   background-color: #c14300;
+   transform: scale(1.05);
+}
