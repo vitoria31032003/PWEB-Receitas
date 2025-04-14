@@ -1,33 +1,67 @@
 body {
    font-family: Arial, Helvetica, sans-serif;
    align-items: center;
-   background-color: rgb(250, 189, 128);
+   background-color: #ADD8E6; 
+   text-align: center;
+   margin: 0;
+   padding: 0;
+}
+
+h1 {
+   color: #00416A; 
+   font-size: 2.5em;
+   margin-bottom: 20px;
+}
+
+a {
+   display: inline-block;
+   margin: 10px;
+   padding: 10px;
+   background-color: #00416A; 
+   color: white;
+   text-decoration: none;
+   border-radius: 5px;
+   transition: background-color 0.3s ease;
+}
+
+a:hover {
+   background-color: #003354; 
 }
 
 #meu-amor {
    opacity: 0;
    transition: opacity 1s;
-   text-align: center;
-   font-size: 500%;
 }
 
 #meu-amor.exibir {
    opacity: 1;
 }
 
-#meu-amor1 {
-   display: block;
-   margin: 10px auto;
-   padding: 5px 5px;
-   font-size: 10px;
-   background-color: #e4540c;
-   color: aliceblue;
-   border: none;
-   border-radius: 20px;
-   cursor: pointer;
-   font-family: Arial, Helvetica, sans-serif;
-   transition: background-color 0.3s ease;
+#tabela-sorvetes {
+   width: 60%;
+   margin: 20px auto;
+   border-collapse: collapse;
+   background-color: #F0F8FF; 
+   border-radius: 10px;
+   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+#tabela-sorvetes th, #tabela-sorvetes td {
+   padding: 12px;
    text-align: center;
-   text-decoration: none;
-   width: 20%;
+   border-bottom: 1px solid #ddd;
+   font-size: 1.2em;
+}
+
+#tabela-sorvetes th {
+   background-color: #00416A; 
+   color: white;
+}
+
+#tabela-sorvetes td {
+   background-color: #eaf6ff; 
+}
+
+#tabela-sorvetes tr:hover td {
+   background-color: #d1e7f7; 
 }

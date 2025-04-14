@@ -1,85 +1,75 @@
 <!DOCTYPE html>
-
-<html lang="pt-br">   
+<html lang="pt-br">
 
 <head>
-
-  <meta charset="UTF-8">      
-
-  <title>JavaScript - Arrow e Callback Functions</title>
-  
-  <link href="estilo.css" rel="stylesheet">
-
+    <meta charset="UTF-8">
+    <title>JavaScript - Arrow e Callback Functions</title>
+    <link href="style.css" rel="stylesheet">
 </head>
 
 <body>
 
-  <h1>Lista de Sorvetes</h1>
-  
-  <a href="#" id="linkCarregar">Carregar sorvetes</a>
-  
-  <a href="#" id="linkOrdenar">Ordenar alfabeticamente</a>
+    <h1>Lista de Sorvetes</h1>
 
-  <a href="#" id="linkEmbaralhar">Embaralhar</a>
+    <a href="#" id="linkCarregar">Carregar sorvetes</a>
+    <a href="#" id="linkOrdenar">Ordenar alfabeticamente</a>
+    <a href="#" id="linkEmbaralhar">Embaralhar</a>
+    <a href="#" id="linkOcultar">Ocultar</a>
 
-  <a href="#" id="linkOcultar">Ocultar</a>
+    <div id="meu-amor">
+        <table id="tabela-sorvetes">
+            <thead>
+                <tr>
+                    <th>Sorvete</th>
+                </tr>
+            </thead>
+            <tbody id="tbody-sorvetes">
+            </tbody>
+        </table>
+    </div>
 
-  <div id="meu-amor"></div>
+    <script>
+        const sorvetes = [
+            "Chocolate", "Baunilha", "Morango", "Flocos", "Napolitano", "Coco", "Pistache", "Limão Siciliano", "Doce de Leite",
+            "Café", "Cookies and Cream", "Chocolate Branco", "Amora", "Maracujá", "Menta com Chocolate", "Açaí com Banana", "Creme",
+            "Caramelo Salgado", "Tiramisu", "Cheesecake de Frutas Vermelhas", "Churros", "Leite Ninho", "Ovomaltine", "Abacaxi com Hortelã"
+        ];
 
-  <script>
+        let exibindo = false;
 
-    const sorvetes = [
-      "Chocolate", "Baunilha", "Morango", "Flocos", "Napolitano",
-      "Coco", "Pistache", "Limão Siciliano", "Doce de Leite", "Café",
-      "Cookies and Cream", "Chocolate Branco", "Amora", "Maracujá",
-      "Menta com Chocolate", "Açaí com Banana", "Creme", "Caramelo Salgado",
-      "Tiramisu", "Cheesecake de Frutas Vermelhas", "Churros", "Leite Ninho",
-      "Ovomaltine", "Abacaxi com Hortelã"
-    ];
+        const carregarTabela = (cervs) => {
+            const container = document.getElementById("tbody-sorvetes");
+            const html = cervs.map(sabor => `<tr><td>${sabor}</td></tr>`).join("\n");
+            container.innerHTML = html;
+            document.getElementById("meu-amor").classList.add("exibir");
+            exibindo = true;
+        }
 
-    let exibindo = false;
+        const carregar = () => carregarTabela(sorvetes);
 
-    const carregarDiv = (cervs) => {
+        const ordenar = () => {
+            const ordenadas = [...sorvetes].sort((a, b) => a.localeCompare(b));
+            carregarTabela(ordenadas);
+        }
 
-      const container = document.getElementById("meu-amor");
+        const embaralhar = () => {
+            const embaralhadas = [...sorvetes].sort(() => Math.random() - 0.5);
+            carregarTabela(embaralhadas);
+        }
 
-      const html = cervs.map(sabor => `<p class="sorvete-item">${sabor}</p>`).join("\n");
+        const ocultar = () => {
+            const container = document.getElementById("meu-amor");
+            container.classList.remove("exibir");
+            exibindo = false;
+        }
 
-      container.innerHTML = html;
-      
-      exibindo = true;
-    }
+        document.getElementById("linkCarregar").addEventListener("click", e => { e.preventDefault(); carregar(); });
+        document.getElementById("linkOrdenar").addEventListener("click", e => { e.preventDefault(); ordenar(); });
+        document.getElementById("linkEmbaralhar").addEventListener("click", e => { e.preventDefault(); embaralhar(); });
+        document.getElementById("linkOcultar").addEventListener("click", e => { e.preventDefault(); ocultar(); });
 
-    const carregar = () => carregarDiv(sorvetes);
+    </script>
 
-    const ordenar = () => {
-
-      const ordenadas = [...sorvetes].sort((a, b) => a.localeCompare(b));
-
-      carregarDiv(ordenadas);
-    }
-
-    const embaralhar = () => {
-
-      const embaralhadas = [...sorvetes].sort(() => Math.random() - 0.5);
-
-      carregarDiv(embaralhadas);
-    }
-
-    const ocultar = () => {
-
-      const container = document.getElementById("meu-amor");
-
-      container.innerHTML = "";
-      
-      exibindo = false;
-    }
-
-    document.getElementById("linkCarregar").addEventListener("click", e => { e.preventDefault(); carregar(); });
-    document.getElementById("linkOrdenar").addEventListener("click", e => { e.preventDefault(); ordenar(); });
-    document.getElementById("linkEmbaralhar").addEventListener("click", e => { e.preventDefault(); embaralhar(); });
-    document.getElementById("linkOcultar").addEventListener("click", e => { e.preventDefault(); ocultar(); });
-    
-  </script>
 </body>
+
 </html>
