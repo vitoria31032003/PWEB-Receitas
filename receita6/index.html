@@ -1,17 +1,25 @@
 <!DOCTYPE html>
+
 <html>   
+
 <head>
+
    <meta charset="UTF-8">      
+
    <link href="style.css" rel="stylesheet">
+
    <title>Objetos JSON</title>
+
 </head>
 
 <body>
 
    <div><button id="botaoCarregar">Carregando cervejas...</button></div>
+
    <div id="cervejasDiv"></div>            
 
    <script>
+      
       let cervejas = [
          { name: "Guinness", alcohol: "10%", style: "Imperial Stout", ibu: "45" },
          { name: "Desperados", alcohol: "6%", style: "Lager", ibu: "25" },
@@ -36,6 +44,7 @@
       ];
 
       const carregarDiv = (cs) => {
+
          const div = document.getElementById("cervejasDiv");
 
          let tabelaHTML = `
