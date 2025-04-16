@@ -1,21 +1,47 @@
 <!DOCTYPE html>
+
 <html>   
+
 <head>
    <meta charset="UTF-8">      
+
    <link href="style.css" rel="stylesheet">
+
    <title>Objetos JSON</title>
+
 </head>
+
 <body>
 
    <div><button id="botaoCarregar">Carregando cervejas...</button></div>
+
    <div id="cervejasDiv"></div>            
 
    <script>
-      let cervejas = [
-         { name: "Guiness", alcohol: "10%" }, 
-         { name: "Desperados", alcohol: "6%" }, 
-         { name: "Becks", alcohol: "5%" }
-      ];
+   
+   let cervejas = [
+      { name: "Guinness", alcohol: "10%", style: "Imperial Stout", ibu: "45" },
+      { name: "Desperados", alcohol: "6%", style: "Lager", ibu: "25" },
+      { name: "Becks", alcohol: "5%", style: "Pilsen", ibu: "20" },
+      { name: "Heineken", alcohol: "5%", style: "Pilsen", ibu: "23" },
+      { name: "Budweiser", alcohol: "4.8%", style: "Lager", ibu: "12" },
+      { name: "Stella Artois", alcohol: "5.2%", style: "Pilsen", ibu: "24" },
+      { name: "Skol", alcohol: "4.7%", style: "Pilsen", ibu: "18" },
+      { name: "Corona", alcohol: "4.5%", style: "Lager", ibu: "19" },
+      { name: "Colorado Indica", alcohol: "7.0%", style: "English IPA", ibu: "55" },
+      { name: "Leffe Blonde", alcohol: "6.6%", style: "Belgian Blonde Ale", ibu: "20" },
+      { name: "Chimay Blue", alcohol: "9%", style: "Belgian Strong Dark Ale", ibu: "35" },
+      { name: "Brooklyn Lager", alcohol: "5.2%", style: "Lager", ibu: "33" },
+      { name: "Founders All Day IPA", alcohol: "4.7%", style: "Session IPA", ibu: "42" },
+      { name: "Sierra Nevada Pale Ale", alcohol: "5.6%", style: "APA", ibu: "38" },
+      { name: "Hoegaarden", alcohol: "4.9%", style: "Witbier", ibu: "15" },
+      { name: "Brahma", alcohol: "4.8%", style: "Pilsen", ibu: "17" },
+      { name: "Eisenbahn Dunkel", alcohol: "5.5%", style: "Dark Lager", ibu: "28" },
+      { name: "Wäls Dubbel", alcohol: "7.5%", style: "Belgian Dubbel", ibu: "30" },
+      { name: "Bud Light", alcohol: "4.2%", style: "Light Lager", ibu: "10" },
+      { name: "Devassa Ruiva", alcohol: "6%", style: "Red Ale", ibu: "26" }
+   ];
+
 
       const carregarDiv = (cs) => {
          const div = document.getElementById("cervejasDiv");
