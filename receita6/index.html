@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 
-<html>
+<html lang="pt-BR">
 
 <head>
 
@@ -45,7 +45,17 @@
 
       ];
 
-      const carregarDiv = (idElemento, dados, cabecalhos, propriedades) => {
+      const carregarDiv = (
+
+         idElemento = "cervejasDiv",
+
+         dados = [],
+
+         cabecalhos = ["Nome", "Álcool", "Estilo", "Amargor"],
+
+         propriedades = ["name", "alcohol", "style", "ibu"]
+
+      ) => {
 
          const div = document.getElementById(idElemento);
 
