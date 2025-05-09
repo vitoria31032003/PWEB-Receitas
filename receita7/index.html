@@ -34,14 +34,29 @@
       //cs é um array de cervejas
 
       const carregarDiv = cs => {
-
-         const div = document.getElementById("cervejasDiv")
-
-         const itensHtml = cs.map( ({name,alcohol}) => `<div>${name} -- ${alcohol}</div>` ) 
-
-         div.innerHTML = `${itensHtml.join("\n")}`
-
-      }
+        
+        const div = document.getElementById("cervejasDiv")
+        
+        const itensHtml = cs.map(({ name, alcohol, blg, style, brand }) => `
+        
+        <div class="cerveja">
+            
+            <strong>${name}</strong><br>
+         
+            Teor alcoólico: ${alcohol}<br>
+         
+            Estilo: ${style}<br>
+        
+            Marca: ${brand}<br>
+        
+            BLG: ${blg}
+     
+            </div>
+   
+            `)
+   
+            div.innerHTML = itensHtml.join("\n")
+}
 
       
 
