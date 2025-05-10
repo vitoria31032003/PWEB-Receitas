@@ -13,81 +13,72 @@
 
    </head>
 
-   <body>
+<body>
 
-      <div><button id="botaoCarregar">Carregando cervejas...</button></div>
+  <h1>Função Fetch</h1>
 
-      <div id="cervejasDiv"></div>            
+  <button id="botaoCarregar">Carregando cervejas...</button>
 
-   </body>   
+  <div id="cervejasDiv"></div>            
 
-   
+  <script>
 
-   <script>
+    let cervejas = [];
 
+    const carregarDiv = (cs) => {
 
+      const div = document.getElementById("cervejasDiv");
 
-      let cervejas = []
+      const tabelaHtml = `
 
-      
+        <table>
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Teor Alcoólico</th>
+              <th>Estilo</th>
+              <th>Marca</th>
+              <th>BLG</th>
+            </tr>
+          </thead>
+          <tbody>
 
-      //cs é um array de cervejas
+            ${cs.map(({ name, alcohol, blg, style, brand }) => `
 
-      const carregarDiv = cs => {
-        
-        const div = document.getElementById("cervejasDiv")
-        
-        const itensHtml = cs.map(({ name, alcohol, blg, style, brand }) => `
-        
-        <div class="cerveja">
-            
-            <strong>${name}</strong><br>
-         
-            Teor alcoólico: ${alcohol}<br>
-         
-            Estilo: ${style}<br>
-        
-            Marca: ${brand}<br>
-        
-            BLG: ${blg}
-     
-            </div>
-   
-            `)
-   
-            div.innerHTML = itensHtml.join("\n")
-}
+              <tr>
+                <td>${name}</td>
+                <td>${alcohol}</td>
+                <td>${style}</td>
+                <td>${brand}</td>
+                <td>${blg}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
 
-      
+      div.innerHTML = tabelaHtml;
 
-      async function carregarCervejas(){
+    }
 
-         try{
+    async function carregarCervejas() {
 
-            let res = await fetch("https://random-data-ai.com/api/v2/beers?size=3")
+      try {
 
-            cervejas = await res.json()
+        let res = await fetch("https://random-data-ai.com/api/v2/beers?size=3");
 
-            carregarDiv(cervejas)
+        cervejas = await res.json();
 
-         }catch(err){
+        carregarDiv(cervejas);
 
-            document.getElementById("cervejasDiv").innerHTML = "Fudeu..."
+      } catch (err) {
 
-         }
-
+        document.getElementById("cervejasDiv").innerHTML = "<p style='color: red;'>Erro ao carregar cervejas 😢</p>";
       }
+    }
 
-      
-
-
-
-      let botao = document.getElementById("botaoCarregar")
-
-      botao.addEventListener("click", () => carregarCervejas() )                 
-
-      
-
-   </script>
-
+    document.getElementById("botaoCarregar").addEventListener("click", carregarCervejas);
+  </script>
+  
+</body>   
 </html>
