@@ -1,7 +1,7 @@
 
 <!DOCTYPE html>
 
-<html>   
+<html lang="pt-BR">
 
    <head>
 
@@ -15,9 +15,7 @@
 
 <body>
 
-  <h1>Função Fetch</h1>
-
-  <button id="botaoCarregar">Carregando cervejas...</button>
+  <div><button id="botaoCarregar">Carregando cervejas...</button></div>
 
   <div id="cervejasDiv"></div>            
 
@@ -62,7 +60,7 @@
     }
 
     async function carregarCervejas() {
-
+      
       try {
 
         let res = await fetch("https://random-data-ai.com/api/v2/beers?size=3");
@@ -70,15 +68,15 @@
         cervejas = await res.json();
 
         carregarDiv(cervejas);
-
+        
       } catch (err) {
 
-        document.getElementById("cervejasDiv").innerHTML = "<p style='color: red;'>Erro ao carregar cervejas 😢</p>";
+        document.getElementById("cervejasDiv").innerHTML = "<p style='color: red;'>Erro ao carregar cervejas </p>";
       }
     }
 
     document.getElementById("botaoCarregar").addEventListener("click", carregarCervejas);
   </script>
-  
+
 </body>   
 </html>
