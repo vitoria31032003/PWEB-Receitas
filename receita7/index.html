@@ -13,70 +13,94 @@
 
    </head>
 
-<body>
+  <body>
+    <div><button id="botaoCarregar">Carregar bebidas e comidas...</button></div>
+    
+    <h2>Bebidas para tomar</h2>
+    <div id="cervejasDiv"></div>     
 
-  <div><button id="botaoCarregar">Carregando cervejas...</button></div>
+    <h2>Comidas para acompanhar</h2>
+    <div id="comidasDiv"></div>         
 
-  <div id="cervejasDiv"></div>            
+    <script>
+      let cervejas = [];
+      let comidas = [];
 
-  <script>
+      const carregarDivCervejas = (cs) => {
+        const div = document.getElementById("cervejasDiv");
 
-    let cervejas = [];
-
-    const carregarDiv = (cs) => {
-
-      const div = document.getElementById("cervejasDiv");
-
-      const tabelaHtml = `
-
-        <table>
-          <thead>
-            <tr>
-              <th>Nome</th>
-              <th>Teor Alcoólico</th>
-              <th>Estilo</th>
-              <th>Marca</th>
-              <th>BLG</th>
-            </tr>
-          </thead>
-          <tbody>
-
-            ${cs.map(({ name, alcohol, blg, style, brand }) => `
-
+        const tabelaHtml = `
+          <table>
+            <thead>
               <tr>
-                <td>${name}</td>
-                <td>${alcohol}</td>
-                <td>${style}</td>
-                <td>${brand}</td>
-                <td>${blg}</td>
+                <th>Nome</th>
+                <th>Teor Alcoólico</th>
+                <th>Estilo</th>
+                <th>Marca</th>
               </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      `;
+            </thead>
+            <tbody>
+              ${cs.map(({ name, alcohol, style, brand }) => `
+                <tr>
+                  <td>${name}</td>
+                  <td>${alcohol}</td>
+                  <td>${style}</td>
+                  <td>${brand}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        `;
 
-      div.innerHTML = tabelaHtml;
-
-    }
-
-    async function carregarCervejas() {
-      
-      try {
-
-        let res = await fetch("https://random-data-ai.com/api/v2/beers?size=3");
-
-        cervejas = await res.json();
-
-        carregarDiv(cervejas);
-        
-      } catch (err) {
-
-        document.getElementById("cervejasDiv").innerHTML = "<p style='color: red;'>Erro ao carregar cervejas </p>";
+        div.innerHTML = tabelaHtml;
       }
-    }
 
-    document.getElementById("botaoCarregar").addEventListener("click", carregarCervejas);
-  </script>
+      const carregarDivComidas = (comidas) => {
+        const div = document.getElementById("comidasDiv");
 
-</body>   
+        const tabelaHtml = `
+          <table>
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Culinária</th>
+                <th>Imagem</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${comidas.map(({ name, cuisine, image }) => `
+                <tr>
+                  <td>${name}</td>
+                  <td>${cuisine}</td>
+                  <td><img src="${image}" alt="${name}" width="100"></td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        `;
+
+        div.innerHTML = tabelaHtml;
+      }
+
+      async function carregarCervejasEComidas() {
+        try {
+
+          const resCervejas = await fetch("https://random-data-api.com/api/v2/beers?size=3");
+          cervejas = await resCervejas.json();
+         
+          const resComidas = await fetch("https://dummyjson.com/recipes?limit=3");
+          const dataComidas = await resComidas.json();
+          comidas = dataComidas.recipes;
+
+          carregarDivCervejas(cervejas);
+          carregarDivComidas(comidas);
+        } catch (err) {
+          document.getElementById("cervejasDiv").innerHTML = "<p style='color: red;'>Erro ao carregar cervejas</p>";
+          document.getElementById("comidasDiv").innerHTML = "<p style='color: red;'>Erro ao carregar comidas</p>";
+        }
+      }
+
+      document.getElementById("botaoCarregar").addEventListener("click", carregarCervejasEComidas);
+    </script>
+  </body>
 </html>
