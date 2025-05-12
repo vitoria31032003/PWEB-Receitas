@@ -1,4 +1,4 @@
-/* Fonte e fundo */
+
 body {
   font-family: Arial, Helvetica, sans-serif;
   background-color: rgb(250, 189, 128);
@@ -8,10 +8,10 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100vh; /* Garantir que o conteúdo fique centralizado verticalmente */
+  height: 100vh;
 }
 
-/* Botão de carregar */
+
 #botaoCarregar {
   margin: 30px auto;
   padding: 12px 24px;
@@ -24,14 +24,14 @@ body {
   transition: background-color 0.3s ease;
   text-align: center;
   width: 220px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Sombra suave no botão */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); 
 }
 
 #botaoCarregar:hover {
   background-color: #ff6f3c;
 }
 
-/* Área onde as pessoas são exibidas */
+
 #pessoasDiv {
   margin-top: 20px;
   text-align: center;
@@ -39,7 +39,7 @@ body {
   max-width: 800px;
 }
 
-/* Cartões de pessoa */
+
 .pessoa {
   background-color: #fff;
   padding: 20px;
@@ -48,7 +48,7 @@ body {
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
   text-align: left;
   transition: transform 0.2s ease;
-  background-color: #fafafa; /* Cor de fundo suave para os cards */
+  background-color: #fafafa; 
 }
 
 .pessoa:hover {
@@ -56,10 +56,10 @@ body {
 }
 
 .pessoa strong {
-  color: #e4540c; /* Cor de destaque para os títulos */
+  color: #e4540c; 
 }
 
-/* Estilo para as linhas de texto */
+
 .pessoa div {
   margin-bottom: 10px;
   font-size: 16px;
