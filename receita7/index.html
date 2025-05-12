@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <link href="style.css" rel="stylesheet">
+
+  <title>Fetch</title>
+
+</head>
+
+<body>
+
+  <div><button id="botaoCarregar">Carregando pessoas...</button></div>
+
+  <div id="pessoasDiv"></div>
+
+  <script>
+
+    let pessoas = [];
+
+    
+    const carregarDiv = cs => {
+
+      const div = document.getElementById("pessoasDiv");
+
+      const itensHtml = cs.map(({ first_name, last_name, age, email, address }) => `
+
+        <div class="pessoa">
+          <strong>Nome:</strong> ${first_name} ${last_name}<br>
+          <strong>Idade:</strong> ${age} anos<br>
+          <strong>Email:</strong> ${email}<br>
+          <strong>Endereço:</strong> ${address.street}, ${address.city}<br>
+        </div>
+
+      `);
+
+      div.innerHTML = itensHtml.join("\n");
+    }
+
+    async function carregarPessoas() {
+
+      try {
+
+        const res = await fetch("https://random-data-api.com/api/v2/users?size=3");
+
+        const pessoas = await res.json();
+
+        console.log(pessoas);
+
+        const cabecalhos = ["First Name", "Last Name", "Email", "Address", "Company"];
+
+        carregarTabela(pessoas, cabecalhos);
+
+      } catch (err) {
+
+        document.getElementById("pessoasDiv").innerHTML = "Erro ao carregar pessoas.";
+      
+        console.error("Erro:", err);
+      }
+    }
+
+    const botao = document.getElementById("botaoCarregar");
+
+    botao.addEventListener("click", carregarPessoas);
+
+  </script>
+  
+</body>
+
+</html>
