@@ -20,7 +20,12 @@
         const dados = await res.json();
         console.log(dados);
 
+        // Arrumar o estilo da tabela
+
+        // Retirar o street e adicionar outro no lugar(ou outros)
         const cabecalhos = ["First Name", "Last Name", "Email", "Street", "City"];
+
+        // retirar esse trecho de codigo e fazer o programa funcionar sem ele, usando só a função de tabela.js
         const dadosFormatados = dados.map(p => ({
           first_name: p.first_name,
           last_name: p.last_name,
@@ -29,6 +34,8 @@
           city: p.address?.city || "N/A"
         }));
 
+
+        // possivelmente vai ter que ajustar a função aqui(formato e/ou parametros passados)
         carregarTabela(dadosFormatados, cabecalhos, "pessoasDiv");
 
       } catch (err) {
