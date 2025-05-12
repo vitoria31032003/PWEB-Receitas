@@ -5,7 +5,7 @@
 <head>
 
   <meta charset="UTF-8">
-  
+
   <link href="style.css" rel="stylesheet">
 
   <title>Fetch</title>
@@ -14,27 +14,26 @@
 
 <body>
 
-  <div><button id="botaoCarregar">Carregando cervejas...</button></div>
+  <div><button id="botaoCarregar">Carregando pessoas...</button></div>
 
-  <div id="cervejasDiv"></div>
+  <div id="pessoasDiv"></div>
 
   <script>
 
-    let cervejas = [];
+    let pessoas = [];
 
-    // cs é um array de cervejas
+    
     const carregarDiv = cs => {
-      
-      const div = document.getElementById("cervejasDiv");
 
-      const itensHtml = cs.map(({ name, alcohol, style, brand, hop }) => `
+      const div = document.getElementById("pessoasDiv");
 
-        <div class="cerveja">
-          <strong>Nome:</strong> ${name}<br>
-          <strong>Teor alcoólico:</strong> ${alcohol}%<br>
-          <strong>Estilo:</strong> ${style}<br>
-          <strong>Marca:</strong> ${brand}<br>
-          <strong>Lúpulo:</strong> ${hop}<br>
+      const itensHtml = cs.map(({ first_name, last_name, age, email, address }) => `
+
+        <div class="pessoa">
+          <strong>Nome:</strong> ${first_name} ${last_name}<br>
+          <strong>Idade:</strong> ${age} anos<br>
+          <strong>Email:</strong> ${email}<br>
+          <strong>Endereço:</strong> ${address.street}, ${address.city}<br>
         </div>
 
       `);
@@ -42,30 +41,30 @@
       div.innerHTML = itensHtml.join("\n");
     }
 
-    async function carregarCervejas() {
+    async function carregarPessoas() {
 
       try {
 
-        const res = await fetch("https://random-data-api.com/api/v2/beers?size=3");
+        const res = await fetch("https://random-data-api.com/api/v2/users?size=3");
 
-        cervejas = await res.json();
+        pessoas = await res.json();
 
-        carregarDiv(cervejas);
+        carregarDiv(pessoas);
 
       } catch (err) {
 
-        document.getElementById("cervejasDiv").innerHTML = "Erro ao carregar cervejas.";
-
+        document.getElementById("pessoasDiv").innerHTML = "Erro ao carregar pessoas.";
+      
         console.error("Erro:", err);
       }
     }
 
     const botao = document.getElementById("botaoCarregar");
 
-    botao.addEventListener("click", carregarCervejas);
-    
-  </script>
+    botao.addEventListener("click", carregarPessoas);
 
+  </script>
+  
 </body>
 
 </html>

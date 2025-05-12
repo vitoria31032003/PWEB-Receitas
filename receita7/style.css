@@ -1,3 +1,4 @@
+/* Fonte e fundo */
 body {
   font-family: Arial, Helvetica, sans-serif;
   background-color: rgb(250, 189, 128);
@@ -6,9 +7,11 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
+  height: 100vh; /* Garantir que o conteúdo fique centralizado verticalmente */
 }
 
-
+/* Botão de carregar */
 #botaoCarregar {
   margin: 30px auto;
   padding: 12px 24px;
@@ -21,23 +24,23 @@ body {
   transition: background-color 0.3s ease;
   text-align: center;
   width: 220px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); 
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Sombra suave no botão */
 }
 
 #botaoCarregar:hover {
   background-color: #ff6f3c;
 }
 
-
-#cervejasDiv {
+/* Área onde as pessoas são exibidas */
+#pessoasDiv {
   margin-top: 20px;
   text-align: center;
   width: 80%;
   max-width: 800px;
 }
 
-
-.cerveja {
+/* Cartões de pessoa */
+.pessoa {
   background-color: #fff;
   padding: 20px;
   margin: 15px 0;
@@ -45,14 +48,24 @@ body {
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
   text-align: left;
   transition: transform 0.2s ease;
-  background-color: #fafafa; 
+  background-color: #fafafa; /* Cor de fundo suave para os cards */
 }
 
-.cerveja:hover {
+.pessoa:hover {
   transform: scale(1.02);
 }
 
-.cerveja strong {
-  color: #e4540c;
+.pessoa strong {
+  color: #e4540c; /* Cor de destaque para os títulos */
 }
 
+/* Estilo para as linhas de texto */
+.pessoa div {
+  margin-bottom: 10px;
+  font-size: 16px;
+  color: #333;
+}
+
+.pessoa div strong {
+  font-weight: bold;
+}
