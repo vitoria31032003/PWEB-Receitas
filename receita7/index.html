@@ -1,78 +1,112 @@
 <!DOCTYPE html>
+
 <html lang="pt-BR">
+
 <head>
+
   <meta charset="UTF-8">
+
   <link href="style.css" rel="stylesheet">
+
   <title>Fetch</title>
+
 </head>
+
 <body>
 
   <div><button id="botaoCarregar">Carregar pessoas</button></div>
+
   <div id="pessoasDiv"></div>
 
+  <div style="margin-top: 30px;">
+    
+    <div><button id="botaoCervejas">Carregar cervejas</button></div>
+
+  <div id="cervejasDiv"></div>
+
+  <script src="tabela.js"></script>
+
   <script>
+
     async function carregarPessoas() {
+
       const botao = document.getElementById("botaoCarregar");
+
       botao.textContent = "Carregando...";
 
       try {
+
         const res = await fetch("https://random-data-api.com/api/v2/users?size=3");
+
         const dados = await res.json();
-        console.log(dados);
+      
+        const cabecalhos = ["Primeiro Nome", "Sobrenome", "Email", "Cidade", "País", "Usuário", "Telefone", "Cargo"];
 
-        // Arrumar o estilo da tabela
+        const extratores = [
+          p => p.first_name,
+          p => p.last_name,
+          p => p.email,
+          p => p.address?.city || "N/A",
+          p => p.address?.country || "N/A",
+          p => p.username,
+          p => p.phone_number,
+          p => p.employment?.title || "N/A"
+        ];
 
-        // Retirar o street e adicionar outro no lugar(ou outros)
-        const cabecalhos = ["First Name", "Last Name", "Email", "Street", "City"];
-
-        // retirar esse trecho de codigo e fazer o programa funcionar sem ele, usando só a função de tabela.js
-        const dadosFormatados = dados.map(p => ({
-          first_name: p.first_name,
-          last_name: p.last_name,
-          email: p.email,
-          street: p.address?.street || "N/A",
-          city: p.address?.city || "N/A"
-        }));
-
-
-        // possivelmente vai ter que ajustar a função aqui(formato e/ou parametros passados)
-        // dá pra deixar ela assim -> carregarTabela(usuarios, cabecalhos);
-        carregarTabela(dadosFormatados, cabecalhos, "pessoasDiv");
+        carregarTabela(dados, cabecalhos, extratores, "pessoasDiv");
 
       } catch (err) {
+
         document.getElementById("pessoasDiv").innerHTML = "Erro ao carregar pessoas.";
+        
         console.error("Erro:", err);
+
       } finally {
+
         botao.textContent = "Carregar pessoas";
       }
     }
 
-    function carregarTabela(dados, cabecalhos, idElemento = "pessoasDiv") {
-      const div = document.getElementById(idElemento);
-      if (!dados || dados.length === 0) {
-        div.innerHTML = "<p>Nenhum dado encontrado.</p>";
-        return;
+    async function carregarCervejas() {
+      
+      const botao = document.getElementById("botaoCervejas");
+
+      botao.textContent = "Carregando...";
+
+      try {
+
+        const res = await fetch("https://random-data-api.com/api/v2/beers?size=3");
+
+        const dados = await res.json();
+
+        const cabecalhos = ["Nome", "Marca", "Estilo", "Teor alcoólico"];
+
+        const extratores = [
+          b => b.name,
+          b => b.brand,
+          b => b.style,
+          b => b.alcohol
+        ];
+
+        carregarTabela(dados, cabecalhos, extratores, "cervejasDiv");
+
+      } catch (err) {
+
+        document.getElementById("cervejasDiv").innerHTML = "Erro ao carregar cervejas.";
+
+        console.error("Erro:", err);
+
+      } finally {
+
+        botao.textContent = "Carregar cervejas";
       }
-
-      const cabecalhoHtml = cabecalhos.map(c => `<th>${c}</th>`).join("");
-      const corpoHtml = dados.map(item => {
-        const colunas = cabecalhos.map(c => {
-          const chave = c.toLowerCase().replace(/ /g, "_");
-          return `<td>${item[chave] || "Não disponível"}</td>`;
-        }).join("");
-        return `<tr>${colunas}</tr>`;
-      }).join("");
-
-      const tabelaHtml = `
-        <table border="1">
-          <thead><tr>${cabecalhoHtml}</tr></thead>
-          <tbody>${corpoHtml}</tbody>
-        </table>
-      `;
-      div.innerHTML = tabelaHtml;
     }
 
+    
     document.getElementById("botaoCarregar").addEventListener("click", carregarPessoas);
+    document.getElementById("botaoCervejas").addEventListener("click", carregarCervejas);
   </script>
+
 </body>
 </html>
+
