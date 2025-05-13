@@ -1,10 +1,15 @@
 <!DOCTYPE html>
+
 <html lang="pt-br">
 
 <head>
+
     <meta charset="UTF-8">
+
     <title>JavaScript - Arrow e Callback Functions</title>
+
     <link href="style.css" rel="stylesheet">
+
 </head>
 
 <body>
@@ -17,19 +22,31 @@
     <a href="#" id="linkOcultar">Ocultar</a>
 
     <div id="meu-amor">
+
         <table id="tabela-sorvetes">
+
             <thead>
+
                 <tr>
+
                     <th>Sorvete</th>
+
                 </tr>
+
             </thead>
+
             <tbody id="tbody-sorvetes">
+
             </tbody>
+
         </table>
+
     </div>
 
     <script>
-        const sorvetes = [
+
+        const sorvetes = 
+        [
             "Chocolate", "Baunilha", "Morango", "Flocos", "Napolitano", "Coco", "Pistache", "Limão Siciliano", "Doce de Leite",
             "Café", "Cookies and Cream", "Chocolate Branco", "Amora", "Maracujá", "Menta com Chocolate", "Açaí com Banana", "Creme",
             "Caramelo Salgado", "Tiramisu", "Cheesecake de Frutas Vermelhas", "Churros", "Leite Ninho", "Ovomaltine", "Abacaxi com Hortelã"
@@ -38,10 +55,15 @@
         let exibindo = false;
 
         const carregarTabela = (cervs) => {
+
             const container = document.getElementById("tbody-sorvetes");
+
             const html = cervs.map(sabor => `<tr><td>${sabor}</td></tr>`).join("\n");
+
             container.innerHTML = html;
+
             document.getElementById("meu-amor").classList.add("exibir");
+            
             exibindo = true;
         }
 
