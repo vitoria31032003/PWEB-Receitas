@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <title>Promessas</title>
+
+  <link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+
+  <div>
+
+    <button id="botaoCervejas">Carregar Cervejas</button>
+
+    <div id="cervejasDiv"></div>
+    
+  </div>
+
+  <div style="margin-top: 30px;">
+    
+    <button id="botaoPokemons">Carregar Pokémons</button>
+
+    <div id="pokemonsDiv"></div>
+
+  </div>
+
+  <script src="tabela.js"></script>
+
+  <script>
+
+    function carregarCervejas() {
+
+      const botao = document.getElementById("botaoCervejas");
+
+      botao.textContent = "Carregando...";
+
+      fetch("https://random-data-api.com/api/v2/beers?size=3")
+
+        .then(res => res.json())
+
+        .then(dados => {
+
+          const cabecalhos = ["Nome", "Marca", "Estilo", "Teor Alcoólico", "Malte", "Lúpulo"];
+          const extratores = [
+            b => b.name,
+            b => b.brand,
+            b => b.style,
+            b => b.alcohol,
+            b => b.malts,
+            b => b.hop
+          ];
+
+          carregarTabela(dados, cabecalhos, extratores, "cervejasDiv");
+        })
+
+        .catch(err => {
+
+          document.getElementById("cervejasDiv").innerHTML = "Erro ao carregar cervejas.";
+
+          console.error("Erro:", err);
+        })
+
+        .finally(() => {
+
+          botao.textContent = "Carregar Cervejas";
+
+        });
+    }
+
+    function carregarPokemons() {
+
+      const botao = document.getElementById("botaoPokemons");
+
+      botao.textContent = "Carregando...";
+
+      const promises = [];
+
+      for (let i = 0; i < 3; i++) {
+
+        const idAleatorio = Math.floor(Math.random() * 151) + 1;
+
+        promises.push(fetch(`https://pokeapi.co/api/v2/pokemon/${idAleatorio}`).then(res => res.json()));
+      }
+
+      Promise.all(promises)
+
+        .then(pokemons => {
+
+          const cabecalhos = ["Nome", "Altura", "Peso", "Tipos"];
+
+          const extratores = [
+
+            p => p.name,
+            p => `${p.height} dm`,
+            p => `${p.weight} hg`,
+            p => p.types.map(t => t.type.name).join(", ")
+          ];
+
+          carregarTabela(pokemons, cabecalhos, extratores, "pokemonsDiv");
+        })
+
+        .catch(err => {
+
+          document.getElementById("pokemonsDiv").innerHTML = "Erro ao carregar pokémons.";
+          console.error("Erro:", err);
+        })
+
+        .finally(() => {
+
+          botao.textContent = "Carregar Pokémons";
+        });
+    }
+
+    document.getElementById("botaoCervejas").addEventListener("click", carregarCervejas);
+    document.getElementById("botaoPokemons").addEventListener("click", carregarPokemons);
+  </script>
+  
+</body>
+</html>
