@@ -2,6 +2,9 @@
 
 Repositório destinado à publicação das receitas passadas na disciplina de Programação Web
 
+
+## Html, css e JavaScript
+
 - [Receita 1](./Html%2C%20css%20e%20JavaScript/receita1)  
 - [Receita 2](./Html%2C%20css%20e%20JavaScript/receita2)  
 - [Receita 3](./Html%2C%20css%20e%20JavaScript/receita3)  
@@ -10,3 +13,10 @@ Repositório destinado à publicação das receitas passadas na disciplina de Pr
 - [Receita 6](./Html%2C%20css%20e%20JavaScript/receita6)  
 - [Receita 7](./Html%2C%20css%20e%20JavaScript/receita7)  
 - [Receita 8](./Html%2C%20css%20e%20JavaScript/receita8)
+
+## React 
+
+- [Receita 1](./React/receita1)  
+- [Receita 2](./React/receita2)  
+- [Receita 3](./React/receita3)  
+- [Receita 4](./React/receita4) 
