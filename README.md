@@ -2,7 +2,7 @@
 
 Repositório destinado à publicação das receitas passadas na disciplina de Programação Web
 
-- [Receita 1](./Html, css e JavaScript/receita1)  
+- [Receita 1](./Html%2C%20css%20e%20JavaScript/receita1)  
 - [Receita 2](./receita2)  
 - [Receita 3](./receita3)  
 - [Receita 4](./receita4)  
