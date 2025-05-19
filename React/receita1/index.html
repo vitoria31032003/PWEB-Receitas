@@ -6,54 +6,61 @@
 
       <title>ReactZero</title>      
 
+      <link rel="stylesheet" href="style.css">
+      
    </head>
 
    <body>
 
-      <div id="app">
-
-      
-
-      </div>
-
-
+      <div id="app"></div>
 
       <script src="libs/react.js"></script>
 
       <script src="libs/react-dom.js"></script>
-
       
-
       <script>
 
+         const createElement = React.createElement
+
+         const th1 = createElement('th', null, 'Título');
+         const th2 = createElement('th', null, 'Ano de lançamento');
+         const th3 = createElement('th', null, 'Gênero');
+
+         const tr1 = createElement('tr', null,
+         createElement('td', null, 'Como Eu Era Antes de Você'),
+         createElement('td', null, '2016'),
+         createElement('td', null, 'Romance/Drama')
+      );
+
+        const tr2 = createElement('tr', null,
+        createElement('td', null, 'Interestelar'),
+        createElement('td', null, '2014'),
+        createElement('td', null, 'Ficção Científica/Drama')
+      );
+
+        const tr3 = createElement('tr', null,
+        createElement('td', null, 'O Lobo de Wall Street'),
+        createElement('td', null, '2013'),
+        createElement('td', null, 'Biografia/Comédia Dramática')
+      );
       
+       const tr4 = createElement('tr', null,
+       createElement('td', null, 'Parasita'),
+       createElement('td', null, '2019'),
+       createElement('td', null, 'Suspense/Drama')
+      );
 
-         ReactDOM.render(
+      const thead = createElement('thead', null,
+         createElement('tr', null, th1, th2, th3, th4)
+      );
+   
+      const tbooy = createElement('tbooy', null, th1, th2);
+      const table = createElement('table', null, thead, tbooy);
 
-            React.createElement(
-
-               'h1',
-
-               {id: 'my-heading'},
-
-               React.createElement(
-
-                  'span',
-
-                  null,
-
-                  'React ',
-
-                  React.createElement('em', null, 'é muito'),
-
-               ),
-
-               ' massa!'
-
-            ),
-
-            document.getElementById("app"))
-
+      ReactDOM.render(
+         table,
+         document.getElementById('app')
+      );
       </script>
 
    </body>
