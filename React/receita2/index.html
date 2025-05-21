@@ -1,1 +1,88 @@
-2
+<!DOCTYPE html>
+
+<html lang="pt-BR">
+
+<head>
+
+  <meta charset="UTF-8"/>
+
+  <title>React Um</title>
+
+  <link rel="stylesheet" href="style.css" />
+
+</head>
+
+<body>
+
+  <a href="#" id="carregar">Carregar Bebidas</a>
+
+  <div id="app"></div>
+
+  <script src="https://unpkg.com/react@17/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <script type="text/babel">
+
+    const bebidas = [
+
+      { nome: "Cachaça 51", tipo: "Cachaça", teor: "39%" },
+      { nome: "Velho Barreiro", tipo: "Cachaça", teor: "39%" },
+      { nome: "Ypióca", tipo: "Cachaça", teor: "38%" },
+      { nome: "Pitu", tipo: "Cachaça", teor: "40%" }
+
+    ];
+
+    const Cabecalho = () => {
+
+      return <h1>Minha tabela de bebidas</h1>;
+
+    };
+
+    const TabelaBebidas = () => {
+      return (
+        <table id="tabela-bebidas">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Tipo</th>
+              <th>Teor Alcoólico</th>
+            </tr>
+          </thead>
+          <tbody>
+            {bebidas.map((bebida, index) => (
+              <tr key={index}>
+                <td>{bebida.nome}</td>
+                <td>{bebida.tipo}</td>
+                <td>{bebida.teor}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      );
+    };
+
+    const carregarDiv = () => {
+
+      ReactDOM.render(
+
+        <div id="container">
+
+          <Cabecalho />
+          <TabelaBebidas />
+
+        </div>,
+
+        document.getElementById("app")
+      );
+    };
+
+    document.getElementById("carregar").addEventListener("click", function (e) {
+
+      e.preventDefault();
+      
+      carregarDiv();
+    });
+  </script>
+</body>
+</html>
