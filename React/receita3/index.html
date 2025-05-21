@@ -1,1 +1,112 @@
-3
+<!DOCTYPE html>
+
+<html lang="pt-BR">
+
+<head>
+
+  <meta charset="UTF-8" />
+  
+  <title>React Dois</title>
+  
+  <link rel="stylesheet" href="style.css" />
+
+</head>
+
+<body>
+
+  <a href="#" id="carregar">Carregar Bebidas</a>
+  
+  <div id="app"></div>
+
+  <script src="https://unpkg.com/react@17/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <script type="text/babel">
+    
+    const bebidas = [
+      { nome: "Cachaça 51", tipo: "Cachaça", teor: "39%" },
+      { nome: "Velho Barreiro", tipo: "Cachaça", teor: "39%" },
+      { nome: "Ypióca", tipo: "Cachaça", teor: "38%" },
+      { nome: "Pitu", tipo: "Cachaça", teor: "40%" }
+    ];
+
+    class Cabecalho extends React.Component {
+      
+      render() {
+       
+        return (
+          
+        <header>
+            
+          <h1>{this.props.titulo}</h1>
+            
+          <p>Confira as informações!</p>
+          
+          </header>
+        );
+      }
+    }
+
+    class TabelaBebidas extends React.Component {
+      render() {
+        return (
+          <table id="tabela-bebidas">
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Tipo</th>
+                <th>Teor Alcoólico</th>
+              </tr>
+            </thead>
+            <tbody>
+              {this.props.lista.map((bebida, index) => (
+                <tr key={index}>
+                  <td>{bebida.nome}</td>
+                  <td>{bebida.tipo}</td>
+                  <td>{bebida.teor}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        );
+      }
+    }
+
+    class Rodape extends React.Component {
+      render() {
+        return (
+          <footer>
+            <p>© 2025 ReceitaReact. Todos os direitos reservados.</p>
+          </footer>
+        );
+      }
+    }
+
+    class App extends React.Component {
+      render() {
+        return (
+          <div id="container">
+            <Cabecalho titulo="Tabela de Bebidas" />
+            <TabelaBebidas lista={bebidas} />
+            <Rodape />
+          </div>
+        );
+      }
+    }
+
+    const carregarDiv = () => {
+      
+      ReactDOM.render(<App />, document.getElementById("app"));
+    };
+    
+    document.getElementById("carregar").addEventListener("click", function (e) {
+
+      e.preventDefault();
+
+      carregarDiv();
+    });
+  </script>
+</body>
+
+</html>
