@@ -2,70 +2,66 @@
 
 <html>
 
-   <head>
+  <head>
 
-      <meta charset="UTF-8">
+    <meta charset="UTF-8" />
 
-      <title>ReactZero</title>
+    <title>ReactZero</title>
 
-      <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css" />
+
+  </head>
+
+  <body>
+
+    <div id="app"></div>
+
+    <script src="libs/react.js"></script>
+
+    <script src="libs/react-dom.js"></script>
+
+    <script>
+
+      const createElement = React.createElement;
+
+      const th1 = createElement('th', null, 'Nome');
+      const th2 = createElement('th', null, 'Tipo');
+      const th3 = createElement('th', null, 'Teor Alcoólico');
+
+      const thead = createElement('thead', null,
+        createElement('tr', null, th1, th2, th3)
+      );
       
-   </head>
+      const tr1 = createElement('tr', null,
+        createElement('td', null, 'Cachaça 51'),
+        createElement('td', null, 'Cachaça'),
+        createElement('td', null, '39%')
+      );
 
-   <body>
+      const tr2 = createElement('tr', null,
+        createElement('td', null, 'Velho Barreiro'),
+        createElement('td', null, 'Cachaça'),
+        createElement('td', null, '39%')
+      );
 
-      <div id="app"></div>
+      const tr3 = createElement('tr', null,
+        createElement('td', null, 'Heineken'),
+        createElement('td', null, 'Cerveja'),
+        createElement('td', null, '5%')
+      );
 
-      <script src="libs/react.js"></script>
+      const tr4 = createElement('tr', null,
+        createElement('td', null, 'Absolut Vodka'),
+        createElement('td', null, 'Vodka'),
+        createElement('td', null, '40%')
+      );
 
-      <script src="libs/react-dom.js"></script>
+      const tbody = createElement('tbody', null, tr1, tr2, tr3, tr4);
+
+      const table = createElement('table', null, thead, tbody);
+
+      ReactDOM.render(table, document.getElementById('app'));
       
-      <script>
-
-         const createElement = React.createElement;
-
-         const th1 = createElement('th', null, 'Filme');
-         const th2 = createElement('th', null, 'Ano de lançamento');
-         const th3 = createElement('th', null, 'Gênero');
-
-         const thead = createElement('thead', null,
-            createElement('tr', null, th1, th2, th3)
-         );
-
-         const tr1 = createElement('tr', null,
-            createElement('td', null, 'Como Eu Era Antes de Você'),
-            createElement('td', null, '2016'),
-            createElement('td', null, 'Romance/Drama')
-         );
-
-         const tr2 = createElement('tr', null,
-            createElement('td', null, 'Interestelar'),
-            createElement('td', null, '2014'),
-            createElement('td', null, 'Ficção Científica/Drama')
-         );
-
-         const tr3 = createElement('tr', null,
-            createElement('td', null, 'O Lobo de Wall Street'),
-            createElement('td', null, '2013'),
-            createElement('td', null, 'Biografia/Comédia Dramática')
-         );
-
-         const tr4 = createElement('tr', null,
-            createElement('td', null, 'Parasita'),
-            createElement('td', null, '2019'),
-            createElement('td', null, 'Suspense/Drama')
-         );
-
-         const tbody = createElement('tbody', null, tr1, tr2, tr3, tr4);
-
-         const table = createElement('table', null, thead, tbody);
-
-         ReactDOM.render(
-            table,
-            document.getElementById('app')
-         );
-      </script>
-
-   </body>
-
+    </script>
+  </body>
 </html>
