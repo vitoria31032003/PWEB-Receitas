@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { fetchGames } from '../actions/gameActions';
 import Link from 'next/link';
 import PokemonCard from '../components/PokemonCard';
@@ -21,6 +21,21 @@ export default function HomePage() {
   const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
+  const [searchTimeout, setSearchTimeout] = useState(null);
+  const [totalCount, setTotalCount] = useState(0);
+  
+  // Referência para o elemento de observação da rolagem infinita
+  const observer = useRef();
+  const lastPokemonElementRef = useCallback(node => {
+    if (loading || isLoadingMore) return;
+    if (observer.current) observer.current.disconnect();
+    observer.current = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && hasMore) {
+        loadMorePokemon();
+      }
+    });
+    if (node) observer.current.observe(node);
+  }, [loading, isLoadingMore, hasMore]);
 
   // Lista de tipos de Pokémon
   const pokemonTypes = [
@@ -37,8 +52,20 @@ export default function HomePage() {
     "clear-body", "natural-cure", "serene-grace", "swift-swim", "battle-armor"
   ];
 
+  // Atualiza os filtros com debounce para busca por nome
   const updateFilters = (event) => {
-    setFilters((prev) => ({ ...prev, [event.target.name]: event.target.value }));
+    const { name, value } = event.target;
+    
+    setFilters((prev) => ({ ...prev, [name]: value }));
+    
+    // Se for o campo de busca por nome, aplicar debounce
+    if (name === 'sName' && value.length > 2) {
+      if (searchTimeout) clearTimeout(searchTimeout);
+      const newTimeout = setTimeout(() => {
+        applyFilters();
+      }, 500);
+      setSearchTimeout(newTimeout);
+    }
   };
 
   const resetFilters = () => {
@@ -52,34 +79,51 @@ export default function HomePage() {
       sOrdering: '', 
       sPage: 1 
     });
+    setGames([]);
+    setHasMore(true);
   };
 
   const applyFilters = () => {
     setGames([]);
     setFilters(prev => ({ ...prev, sPage: 1 }));
     setHasMore(true);
+    setLoading(true);
   };
 
   useEffect(() => { 
-    setLoading(true);
-    fetchGames(filters).then((data) => {
-      if (filters.sPage === 1) {
-        setGames(data);
-      } else {
-        setGames(prev => [...prev, ...data]);
+    const fetchData = async () => {
+      try {
+        const data = await fetchGames(filters);
+        
+        if (filters.sPage === 1) {
+          setGames(data);
+          // Estimar o total baseado no número de resultados
+          setTotalCount(data.length >= 40 ? 898 : data.length);
+        } else {
+          // Garantir que não haja duplicatas ao carregar mais
+          const newPokemon = data.filter(newPoke => 
+            !games.some(existingPoke => existingPoke.id === newPoke.id)
+          );
+          setGames(prev => [...prev, ...newPokemon]);
+        }
+        
+        // Se retornou menos itens que o esperado, provavelmente não há mais para carregar
+        if (data.length < 40) {
+          setHasMore(false);
+        }
+      } catch (error) {
+        console.error("Erro ao buscar Pokémon:", error);
+      } finally {
+        setLoading(false);
+        setIsLoadingMore(false);
       }
-      setLoading(false);
-      setIsLoadingMore(false);
-      
-      // Se retornou menos itens que o esperado, provavelmente não há mais para carregar
-      if (data.length < 20) {
-        setHasMore(false);
-      }
-    }); 
+    };
+    
+    fetchData();
   }, [filters]);
 
   const loadMorePokemon = () => {
-    if (!isLoadingMore && hasMore) {
+    if (!isLoadingMore && hasMore && !loading) {
       setIsLoadingMore(true);
       setFilters(prev => ({ ...prev, sPage: prev.sPage + 1 }));
     }
@@ -98,6 +142,7 @@ export default function HomePage() {
       sOrdering: '', 
       sPage: 1 
     });
+    setLoading(true);
   };
 
   return (
@@ -118,6 +163,19 @@ export default function HomePage() {
                 onChange={updateFilters} 
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pokeRed focus:border-transparent"
               />
+              {filters.sName && (
+                <button 
+                  onClick={() => {
+                    setFilters(prev => ({ ...prev, sName: '' }));
+                    applyFilters();
+                  }}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                </button>
+              )}
             </div>
             <button 
               onClick={applyFilters} 
@@ -170,7 +228,11 @@ export default function HomePage() {
                   id="pokemon-type"
                   name="sType"
                   value={filters.sType}
-                  onChange={updateFilters}
+                  onChange={(e) => {
+                    updateFilters(e);
+                    // Aplicar filtro automaticamente ao selecionar
+                    setTimeout(() => applyFilters(), 100);
+                  }}
                   className="w-full p-2 border border-gray-300 rounded-md focus:ring-pokeRed focus:border-pokeRed"
                 >
                   <option value="">Todos os tipos</option>
@@ -186,7 +248,11 @@ export default function HomePage() {
                   id="pokemon-weakness"
                   name="sWeakness"
                   value={filters.sWeakness}
-                  onChange={updateFilters}
+                  onChange={(e) => {
+                    updateFilters(e);
+                    // Aplicar filtro automaticamente ao selecionar
+                    setTimeout(() => applyFilters(), 100);
+                  }}
                   className="w-full p-2 border border-gray-300 rounded-md focus:ring-pokeRed focus:border-pokeRed"
                 >
                   <option value="">Todas as fraquezas</option>
@@ -202,7 +268,11 @@ export default function HomePage() {
                   id="pokemon-ability"
                   name="sAbility"
                   value={filters.sAbility}
-                  onChange={updateFilters}
+                  onChange={(e) => {
+                    updateFilters(e);
+                    // Aplicar filtro automaticamente ao selecionar
+                    setTimeout(() => applyFilters(), 100);
+                  }}
                   className="w-full p-2 border border-gray-300 rounded-md focus:ring-pokeRed focus:border-pokeRed"
                 >
                   <option value="">Todas as habilidades</option>
@@ -220,7 +290,11 @@ export default function HomePage() {
                   id="pokemon-height"
                   name="sHeight"
                   value={filters.sHeight}
-                  onChange={updateFilters}
+                  onChange={(e) => {
+                    updateFilters(e);
+                    // Aplicar filtro automaticamente ao selecionar
+                    setTimeout(() => applyFilters(), 100);
+                  }}
                   className="w-full p-2 border border-gray-300 rounded-md focus:ring-pokeRed focus:border-pokeRed"
                 >
                   <option value="">Qualquer altura</option>
@@ -236,7 +310,11 @@ export default function HomePage() {
                   id="pokemon-weight"
                   name="sWeight"
                   value={filters.sWeight}
-                  onChange={updateFilters}
+                  onChange={(e) => {
+                    updateFilters(e);
+                    // Aplicar filtro automaticamente ao selecionar
+                    setTimeout(() => applyFilters(), 100);
+                  }}
                   className="w-full p-2 border border-gray-300 rounded-md focus:ring-pokeRed focus:border-pokeRed"
                 >
                   <option value="">Qualquer peso</option>
@@ -264,7 +342,15 @@ export default function HomePage() {
           )}
         </div>
         
-        <div className="mb-6 flex justify-end">
+        <div className="mb-6 flex flex-col sm:flex-row justify-between items-center">
+          <div className="mb-3 sm:mb-0">
+            {!loading && games.length > 0 && (
+              <p className="text-gray-600">
+                Exibindo {games.length} {games.length === 1 ? 'Pokémon' : 'Pokémons'}
+                {totalCount > games.length ? ` de aproximadamente ${totalCount}` : ''}
+              </p>
+            )}
+          </div>
           <div className="flex items-center">
             <span className="mr-2 text-gray-700">Organizar por</span>
             <select 
@@ -272,7 +358,8 @@ export default function HomePage() {
               value={filters.sOrdering} 
               onChange={(e) => {
                 updateFilters(e);
-                applyFilters();
+                // Aplicar ordenação automaticamente
+                setTimeout(() => applyFilters(), 100);
               }} 
               className="p-2 rounded-lg border border-gray-300"
             >
@@ -297,9 +384,18 @@ export default function HomePage() {
         ) : (
           <>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
-              {games.map((pokemon) => (
-                <PokemonCard key={pokemon.id} pokemon={pokemon} />
-              ))}
+              {games.map((pokemon, index) => {
+                // Adicionar ref ao último elemento para rolagem infinita
+                if (games.length === index + 1) {
+                  return (
+                    <div ref={lastPokemonElementRef} key={pokemon.id}>
+                      <PokemonCard pokemon={pokemon} />
+                    </div>
+                  );
+                } else {
+                  return <PokemonCard key={pokemon.id} pokemon={pokemon} />;
+                }
+              })}
             </div>
             
             {games.length > 0 && (

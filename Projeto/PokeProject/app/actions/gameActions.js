@@ -22,8 +22,8 @@ export const fetchGames = cache(async (filters = {}) => {
     // Construir a URL base da API do Pokémon
     let apiUrl = 'https://pokeapi.co/api/v2/pokemon';
     
-    // Adicionar parâmetros de paginação
-    const limit = 20;
+    // Adicionar parâmetros de paginação - Aumentado para 40 Pokémon por página
+    const limit = 40;
     const offset = (sPage - 1) * limit;
     
     // Se estamos buscando por um nome ou ID específico
@@ -58,13 +58,14 @@ export const fetchGames = cache(async (filters = {}) => {
             value: s.base_stat
           })),
           species: speciesData.name,
+          species_url: pokemon.species.url,
           generation: speciesData.generation.name,
           habitat: speciesData.habitat?.name || 'unknown',
           evolution_chain_url: speciesData.evolution_chain.url
         }];
       } else {
-        // Buscar por nome (parcial)
-        apiUrl = `${apiUrl}?limit=100&offset=0`;
+        // Buscar por nome (parcial) - Aumentado para 200 resultados iniciais para melhor filtragem
+        apiUrl = `${apiUrl}?limit=200&offset=0`;
         const response = await fetch(apiUrl);
         const data = await response.json();
         
@@ -97,6 +98,7 @@ export const fetchGames = cache(async (filters = {}) => {
                 value: s.base_stat
               })),
               species: speciesData.name,
+              species_url: pokemon.species.url,
               generation: speciesData.generation.name,
               habitat: speciesData.habitat?.name || 'unknown',
               evolution_chain_url: speciesData.evolution_chain.url
@@ -104,12 +106,16 @@ export const fetchGames = cache(async (filters = {}) => {
           })
         );
         
-        return pokemonDetails;
+        // Ordenar resultados antes de retornar
+        return sortPokemonList(pokemonDetails, sOrdering);
       }
     }
     
-    // Busca padrão com paginação
-    apiUrl = `${apiUrl}?limit=${limit}&offset=${offset}`;
+    // Busca padrão com paginação - Aumentado para 100 resultados para melhor filtragem
+    const fetchLimit = 100;
+    const fetchOffset = Math.floor(offset / fetchLimit) * fetchLimit;
+    
+    apiUrl = `${apiUrl}?limit=${fetchLimit}&offset=${fetchOffset}`;
     const response = await fetch(apiUrl);
     const data = await response.json();
     
@@ -137,6 +143,7 @@ export const fetchGames = cache(async (filters = {}) => {
             value: s.base_stat
           })),
           species: speciesData.name,
+          species_url: pokemonData.species.url,
           generation: speciesData.generation.name,
           habitat: speciesData.habitat?.name || 'unknown',
           evolution_chain_url: speciesData.evolution_chain.url
@@ -293,46 +300,59 @@ export const fetchGames = cache(async (filters = {}) => {
       }
     }
     
-    // Ordenar resultados
-    if (sOrdering) {
-      switch (sOrdering) {
-        case 'name':
-          filteredPokemon.sort((a, b) => a.name.localeCompare(b.name));
-          break;
-        case '-name':
-          filteredPokemon.sort((a, b) => b.name.localeCompare(a.name));
-          break;
-        case 'height':
-          filteredPokemon.sort((a, b) => a.height - b.height);
-          break;
-        case '-height':
-          filteredPokemon.sort((a, b) => b.height - a.height);
-          break;
-        case 'weight':
-          filteredPokemon.sort((a, b) => a.weight - b.weight);
-          break;
-        case '-weight':
-          filteredPokemon.sort((a, b) => b.weight - a.weight);
-          break;
-        default:
-          // Ordenar por ID (padrão)
-          filteredPokemon.sort((a, b) => a.id - b.id);
-      }
-    } else {
-      // Ordenar por ID (padrão)
-      filteredPokemon.sort((a, b) => a.id - b.id);
-    }
-    
-    return filteredPokemon;
+    // Ordenar e retornar os resultados
+    return sortPokemonList(filteredPokemon, sOrdering);
   } catch (error) {
     console.error('Erro ao buscar Pokémon:', error);
     return [];
   }
 });
 
+// Função auxiliar para ordenar a lista de Pokémon
+function sortPokemonList(pokemonList, ordering) {
+  if (!pokemonList || pokemonList.length === 0) return [];
+  
+  const sortedList = [...pokemonList]; // Criar uma cópia para não modificar o original
+  
+  if (ordering) {
+    switch (ordering) {
+      case 'name':
+        sortedList.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      case '-name':
+        sortedList.sort((a, b) => b.name.localeCompare(a.name));
+        break;
+      case 'height':
+        sortedList.sort((a, b) => a.height - b.height);
+        break;
+      case '-height':
+        sortedList.sort((a, b) => b.height - a.height);
+        break;
+      case 'weight':
+        sortedList.sort((a, b) => a.weight - b.weight);
+        break;
+      case '-weight':
+        sortedList.sort((a, b) => b.weight - a.weight);
+        break;
+      default:
+        // Ordenar por ID (padrão)
+        sortedList.sort((a, b) => a.id - b.id);
+    }
+  } else {
+    // Ordenar por ID (padrão)
+    sortedList.sort((a, b) => a.id - b.id);
+  }
+  
+  return sortedList;
+}
+
 // Função para buscar detalhes de um jogo específico (Pokémon)
 export const fetchGameDetails = cache(async (id) => {
   try {
+    if (!id) {
+      throw new Error("ID do Pokémon não fornecido");
+    }
+    
     // Buscar dados do Pokémon
     const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
     

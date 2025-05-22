@@ -104,8 +104,19 @@ export default function PokemonDetails({ params }) {
   const [evolutionChain, setEvolutionChain] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [pokemonId, setPokemonId] = useState(null);
 
   useEffect(() => {
+    // Garantir que params.id existe e é válido
+    if (!params || !params.id) {
+      setError("ID do Pokémon não fornecido");
+      setLoading(false);
+      return;
+    }
+
+    // Armazenar o ID em um estado local para evitar problemas de referência
+    setPokemonId(params.id);
+
     const fetchData = async () => {
       try {
         setLoading(true);
@@ -120,9 +131,9 @@ export default function PokemonDetails({ params }) {
         setPokemonData(data);
         
         // Buscar a cadeia evolutiva
-        if (data.species_url) {
+        if (data.species && data.species.url) {
           try {
-            const speciesResponse = await fetch(data.species_url);
+            const speciesResponse = await fetch(data.species.url);
             const speciesData = await speciesResponse.json();
             
             if (speciesData.evolution_chain && speciesData.evolution_chain.url) {
@@ -132,32 +143,41 @@ export default function PokemonDetails({ params }) {
               // Processar a cadeia evolutiva
               const chain = [];
               
-              // Adicionar o primeiro Pokémon da cadeia
-              if (evolutionData.chain) {
-                const baseSpecies = evolutionData.chain.species;
-                const baseId = getIdFromUrl(baseSpecies.url);
+              // Função recursiva para processar a cadeia evolutiva
+              const processEvolutionChain = async (chainItem) => {
+                if (!chainItem || !chainItem.species) return;
                 
-                chain.push({
-                  id: baseId,
-                  name: baseSpecies.name,
-                  image: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${baseId}.png`
-                });
+                // Extrair o ID do Pokémon da URL
+                const urlParts = chainItem.species.url.split('/');
+                const pokemonId = urlParts[urlParts.length - 2];
                 
-                // Adicionar evoluções
-                let currentEvolution = evolutionData.chain.evolves_to;
-                while (currentEvolution && currentEvolution.length > 0) {
-                  const evolution = currentEvolution[0];
-                  const evolutionId = getIdFromUrl(evolution.species.url);
+                if (!pokemonId) return;
+                
+                try {
+                  // Buscar dados básicos do Pokémon
+                  const pokemonResponse = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonId}`);
+                  const pokemonData = await pokemonResponse.json();
                   
+                  // Adicionar à cadeia evolutiva
                   chain.push({
-                    id: evolutionId,
-                    name: evolution.species.name,
-                    image: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${evolutionId}.png`
+                    id: parseInt(pokemonId),
+                    name: chainItem.species.name,
+                    image: pokemonData.sprites.other['official-artwork'].front_default || pokemonData.sprites.front_default
                   });
                   
-                  currentEvolution = evolution.evolves_to;
+                  // Processar evoluções
+                  if (chainItem.evolves_to && chainItem.evolves_to.length > 0) {
+                    for (const evolution of chainItem.evolves_to) {
+                      await processEvolutionChain(evolution);
+                    }
+                  }
+                } catch (err) {
+                  console.error(`Erro ao processar evolução para ID ${pokemonId}:`, err);
                 }
-              }
+              };
+              
+              // Iniciar processamento da cadeia evolutiva
+              await processEvolutionChain(evolutionData.chain);
               
               setEvolutionChain(chain);
             }
@@ -168,16 +188,18 @@ export default function PokemonDetails({ params }) {
         
         setLoading(false);
       } catch (err) {
+        console.error("Erro ao carregar detalhes:", err);
         setError("Erro ao carregar os detalhes do Pokémon.");
         setLoading(false);
       }
     };
     
     fetchData();
-  }, [params.id]);
+  }, [params]);
   
   // Função auxiliar para extrair o ID da URL
   const getIdFromUrl = (url) => {
+    if (!url) return null;
     const matches = url.match(/\/(\d+)\//);
     return matches ? parseInt(matches[1]) : null;
   };
@@ -186,7 +208,9 @@ export default function PokemonDetails({ params }) {
     return (
       <div className="min-h-screen bg-white py-12 px-6 flex justify-center items-center">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-pokeRed"></div>
+          <div className="pokeball-loading">
+            <div className="pokeball-loading-inner"></div>
+          </div>
           <p className="mt-2 text-gray-600">Carregando detalhes do Pokémon...</p>
         </div>
       </div>
@@ -221,15 +245,15 @@ export default function PokemonDetails({ params }) {
       const [name, value] = stat.split(': ');
       return { name, value: parseInt(value) || 0 };
     }) : 
-    [];
+    pokemonData.stats || [];
 
   // Extrair as habilidades (se disponíveis)
   const abilitiesText = pokemonData.description_raw ? 
-    pokemonData.description_raw.split('\n\n')[1].replace('Habilidades: ', '') : 
+    pokemonData.description_raw.split('\n\n')[1]?.replace('Habilidades: ', '') : 
     '';
 
   // Determinar o ID do próximo e do anterior Pokémon
-  const currentId = parseInt(params.id);
+  const currentId = parseInt(pokemonId);
   const prevId = currentId > 1 ? currentId - 1 : null;
   const nextId = currentId < 898 ? currentId + 1 : null;
 
@@ -270,13 +294,15 @@ export default function PokemonDetails({ params }) {
             
             <div className="mb-6">
               <h2 className="text-xl font-bold mb-2">Informações</h2>
-              <p className="text-gray-700 mb-2">{pokemonData.released}</p>
-              <p className="text-gray-700">{pokemonData.rating}</p>
+              <p className="text-gray-700 mb-2">Altura: {pokemonData.height} m</p>
+              <p className="text-gray-700">Peso: {pokemonData.weight} kg</p>
             </div>
             
             <div className="mb-6">
               <h2 className="text-xl font-bold mb-2">Habilidades</h2>
-              <p className="text-gray-700">{abilitiesText}</p>
+              <p className="text-gray-700">
+                {abilitiesText || pokemonData.abilities?.map(a => a.name).join(', ')}
+              </p>
             </div>
           </div>
         </div>
@@ -284,7 +310,7 @@ export default function PokemonDetails({ params }) {
         {/* Linha Evolutiva */}
         <div className="p-6 bg-white border-t border-gray-200">
           <h2 className="text-2xl font-bold mb-6 text-center">Linha Evolutiva</h2>
-          <EvolutionChain evolutionData={evolutionChain} currentPokemonId={params.id} />
+          <EvolutionChain evolutionData={evolutionChain} currentPokemonId={pokemonId} />
         </div>
         
         {/* Estatísticas */}
