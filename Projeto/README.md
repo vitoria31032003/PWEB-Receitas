@@ -1,1 +1,1 @@
-# Repositóio do Pojeto de Pweb
+Projeto pokedex
