@@ -7,23 +7,26 @@ import PokemonCard from '../components/PokemonCard';
 
 export default function HomePage() {
   const [games, setGames] = useState([]);
-  const [filters, setFilters] = useState({ 
-    sName: '', 
+  // Garantir que o estado inicial dos filtros esteja realmente vazio
+  const initialFilters = useRef({
+    sName: '',
     sType: '',
     sWeakness: '',
     sAbility: '',
     sHeight: '',
     sWeight: '',
-    sOrdering: '', 
-    sPage: 1 
+    sOrdering: '',
+    sPage: 1
   });
-  const [loading, setLoading] = useState(false);
+  const [filters, setFilters] = useState(initialFilters.current);
+  const [loading, setLoading] = useState(true); // Inicia como true para o carregamento inicial
   const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [searchTimeout, setSearchTimeout] = useState(null);
   const [totalCount, setTotalCount] = useState(0);
-  
+  const isInitialMount = useRef(true); // Flag para controlar o carregamento inicial
+
   // Referência para o elemento de observação da rolagem infinita
   const observer = useRef();
   const lastPokemonElementRef = useCallback(node => {
@@ -37,17 +40,15 @@ export default function HomePage() {
     if (node) observer.current.observe(node);
   }, [loading, isLoadingMore, hasMore]);
 
-  // Lista de tipos de Pokémon
+  // Listas de tipos e habilidades (mantidas como antes)
   const pokemonTypes = [
-    "normal", "fire", "water", "grass", "electric", "ice", "fighting", 
-    "poison", "ground", "flying", "psychic", "bug", "rock", "ghost", 
+    "normal", "fire", "water", "grass", "electric", "ice", "fighting",
+    "poison", "ground", "flying", "psychic", "bug", "rock", "ghost",
     "dragon", "dark", "steel", "fairy"
   ];
-
-  // Lista de habilidades comuns
   const commonAbilities = [
     "overgrow", "blaze", "torrent", "shield-dust", "shed-skin", "compound-eyes",
-    "swarm", "keen-eye", "run-away", "intimidate", "static", "sand-veil", 
+    "swarm", "keen-eye", "run-away", "intimidate", "static", "sand-veil",
     "lightning-rod", "levitate", "chlorophyll", "effect-spore", "synchronize",
     "clear-body", "natural-cure", "serene-grace", "swift-swim", "battle-armor"
   ];
@@ -55,72 +56,85 @@ export default function HomePage() {
   // Atualiza os filtros com debounce para busca por nome
   const updateFilters = (event) => {
     const { name, value } = event.target;
-    
-    setFilters((prev) => ({ ...prev, [name]: value }));
-    
-    // Se for o campo de busca por nome, aplicar debounce
-    if (name === 'sName' && value.length > 2) {
+    setFilters((prev) => ({ ...prev, [name]: value, sPage: 1 })); // Reseta a página ao mudar filtro
+
+    // Se for o campo de busca por nome, aplicar debounce antes de buscar
+    if (name === 'sName') {
       if (searchTimeout) clearTimeout(searchTimeout);
-      const newTimeout = setTimeout(() => {
+      // Só busca se tiver mais de 2 caracteres ou se estiver limpando a busca
+      if (value.length > 2 || value === '') {
+          const newTimeout = setTimeout(() => {
+            applyFilters(true); // Passa flag para indicar que é busca por nome
+          }, 500);
+          setSearchTimeout(newTimeout);
+      } else {
+          // Se tem 1 ou 2 caracteres, não busca automaticamente, espera o botão
+      }
+    } else {
+        // Para outros filtros (selects), aplica imediatamente
         applyFilters();
-      }, 500);
-      setSearchTimeout(newTimeout);
     }
   };
 
   const resetFilters = () => {
-    setFilters({ 
-      sName: '', 
-      sType: '',
-      sWeakness: '',
-      sAbility: '',
-      sHeight: '',
-      sWeight: '',
-      sOrdering: '', 
-      sPage: 1 
-    });
-    setGames([]);
-    setHasMore(true);
+    setFilters(initialFilters.current);
+    // Não precisa chamar applyFilters aqui, o useEffect vai pegar a mudança
   };
 
-  const applyFilters = () => {
-    setGames([]);
-    setFilters(prev => ({ ...prev, sPage: 1 }));
-    setHasMore(true);
+  // Função para aplicar os filtros e buscar dados
+  const applyFilters = (isSearchByName = false) => {
+    // Se não for busca por nome, reseta a página
+    if (!isSearchByName) {
+        setFilters(prev => ({ ...prev, sPage: 1 }));
+    }
+    // A busca será acionada pelo useEffect ao detectar mudança nos filtros
+  };
+
+  // Efeito para buscar os dados quando os filtros mudam
+  useEffect(() => {
+    // Evita a busca inicial duplicada se os filtros não mudaram
+    if (isInitialMount.current && JSON.stringify(filters) === JSON.stringify(initialFilters.current) && games.length > 0) {
+        isInitialMount.current = false;
+        setLoading(false);
+        return;
+    }
+
     setLoading(true);
-  };
-
-  useEffect(() => { 
     const fetchData = async () => {
       try {
-        const data = await fetchGames(filters);
-        
+        const currentFilters = { ...filters };
+        // Garante que filtros vazios sejam tratados corretamente pela API (se necessário)
+        // Ex: if (currentFilters.sName === '') delete currentFilters.sName;
+
+        const data = await fetchGames(currentFilters);
+
         if (filters.sPage === 1) {
           setGames(data);
-          // Estimar o total baseado no número de resultados
-          setTotalCount(data.length >= 40 ? 898 : data.length);
+          // Estimar o total (pode precisar de ajuste dependendo da API)
+          setTotalCount(data.length >= 40 ? 898 : data.length); // Exemplo
         } else {
-          // Garantir que não haja duplicatas ao carregar mais
-          const newPokemon = data.filter(newPoke => 
+          const newPokemon = data.filter(newPoke =>
             !games.some(existingPoke => existingPoke.id === newPoke.id)
           );
           setGames(prev => [...prev, ...newPokemon]);
         }
-        
-        // Se retornou menos itens que o esperado, provavelmente não há mais para carregar
-        if (data.length < 40) {
-          setHasMore(false);
-        }
+
+        setHasMore(data.length === 40); // Assumindo que 40 é o limite por página
+
       } catch (error) {
         console.error("Erro ao buscar Pokémon:", error);
+        setHasMore(false); // Para de tentar carregar mais em caso de erro
       } finally {
         setLoading(false);
         setIsLoadingMore(false);
+        if (isInitialMount.current) {
+            isInitialMount.current = false;
+        }
       }
     };
-    
+
     fetchData();
-  }, [filters]);
+  }, [filters]); // Dependência principal
 
   const loadMorePokemon = () => {
     if (!isLoadingMore && hasMore && !loading) {
@@ -130,240 +144,212 @@ export default function HomePage() {
   };
 
   const getRandomPokemon = () => {
-    // Gerar um número aleatório entre 1 e 898 (total de Pokémon na API)
     const randomId = Math.floor(Math.random() * 898) + 1;
-    setFilters({ 
-      sName: randomId.toString(), 
-      sType: '',
-      sWeakness: '',
-      sAbility: '',
-      sHeight: '',
-      sWeight: '',
-      sOrdering: '', 
-      sPage: 1 
+    // Define o filtro de nome para o ID aleatório e reseta outros filtros
+    setFilters({
+        ...initialFilters.current,
+        sName: randomId.toString(),
+        sPage: 1
     });
-    setLoading(true);
+    // O useEffect tratará da busca
   };
+
+  // ----- Renderização (mantida como antes, ajustando apenas a lógica de estado) -----
 
   return (
     <div className="min-h-screen py-9 px-4 bg-white">
       <div className="max-w-7xl mx-auto">
         <h1 className="text-4xl font-bold mb-6 text-center">Pokédex</h1>
-        
-        <div className="search-bar bg-gray-100 p-6 rounded-lg shadow-md mb-8">
-          <label htmlFor="pokemon-search" className="block text-xl mb-2 font-semibold">Nome ou número</label>
-          <div className="flex flex-col sm:flex-row gap-4">
+
+        {/* Barra de Filtros */}
+        <div className="search-bar bg-gray-100 p-4 md:p-6 rounded-lg shadow-md mb-8">
+          {/* Filtro por Nome */}
+          <div className="flex flex-col sm:flex-row gap-4 mb-4">
             <div className="flex-grow relative">
-              <input 
+              <label htmlFor="pokemon-search" className="sr-only">Buscar por nome ou número</label>
+              <input
                 id="pokemon-search"
-                type="text" 
-                name="sName" 
-                placeholder="Buscar Pokémon" 
-                value={filters.sName} 
-                onChange={updateFilters} 
+                type="text"
+                name="sName"
+                placeholder="Buscar por nome ou número..."
+                value={filters.sName}
+                onChange={updateFilters}
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pokeRed focus:border-transparent"
               />
               {filters.sName && (
-                <button 
+                <button
                   onClick={() => {
-                    setFilters(prev => ({ ...prev, sName: '' }));
-                    applyFilters();
+                    setFilters(prev => ({ ...prev, sName: '', sPage: 1 }));
+                    // O useEffect tratará da busca
                   }}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  aria-label="Limpar busca"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                  </svg>
+                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                   </svg>
                 </button>
               )}
             </div>
-            <button 
-              onClick={applyFilters} 
-              className="bg-pokeRed text-white px-6 py-3 rounded-lg hover:bg-opacity-90 transition-colors flex items-center justify-center"
+            <button
+              onClick={() => applyFilters(true)} // Botão de busca explícito
+              className="bg-pokeRed text-white px-6 py-3 rounded-lg hover:bg-opacity-90 transition-colors flex items-center justify-center sm:w-auto w-full"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
+               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+               </svg>
               Buscar
             </button>
           </div>
-          
+
+          {/* Botões Avançados e Aleatório */}
           <div className="mt-4 flex flex-col sm:flex-row justify-between items-center">
-            <button 
-              onClick={() => setShowAdvancedSearch(!showAdvancedSearch)} 
-              className="text-sm text-pokeRed hover:text-red-700 transition-colors flex items-center"
+            <button
+              onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
+              className="text-sm text-pokeRed hover:text-red-700 transition-colors flex items-center mb-2 sm:mb-0"
             >
               {showAdvancedSearch ? (
                 <>
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                  </svg>
-                  Ocultar pesquisa avançada
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>
+                  Ocultar filtros avançados
                 </>
               ) : (
                 <>
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                  Mostrar pesquisa avançada
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                  Mostrar filtros avançados
                 </>
               )}
             </button>
-            <button 
-              onClick={getRandomPokemon} 
-              className="mt-2 sm:mt-0 bg-pokeBlue text-white px-4 py-2 rounded-lg hover:bg-opacity-90 transition-colors flex items-center"
+            <button
+              onClick={getRandomPokemon}
+              className="bg-pokeBlue text-white px-4 py-2 rounded-lg hover:bg-opacity-90 transition-colors flex items-center"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
               Surpreenda-me!
             </button>
           </div>
-          
+
+          {/* Filtros Avançados */}
           {showAdvancedSearch && (
-            <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-300">
-              <div>
-                <label htmlFor="pokemon-type" className="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
-                <select
-                  id="pokemon-type"
-                  name="sType"
-                  value={filters.sType}
-                  onChange={(e) => {
-                    updateFilters(e);
-                    // Aplicar filtro automaticamente ao selecionar
-                    setTimeout(() => applyFilters(), 100);
-                  }}
-                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-pokeRed focus:border-pokeRed"
-                >
-                  <option value="">Todos os tipos</option>
-                  {pokemonTypes.map(type => (
-                    <option key={type} value={type}>{type.charAt(0).toUpperCase() + type.slice(1)}</option>
-                  ))}
-                </select>
-              </div>
-              
-              <div>
-                <label htmlFor="pokemon-weakness" className="block text-sm font-medium text-gray-700 mb-1">Fraqueza</label>
-                <select
-                  id="pokemon-weakness"
-                  name="sWeakness"
-                  value={filters.sWeakness}
-                  onChange={(e) => {
-                    updateFilters(e);
-                    // Aplicar filtro automaticamente ao selecionar
-                    setTimeout(() => applyFilters(), 100);
-                  }}
-                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-pokeRed focus:border-pokeRed"
-                >
-                  <option value="">Todas as fraquezas</option>
-                  {pokemonTypes.map(type => (
-                    <option key={type} value={type}>{type.charAt(0).toUpperCase() + type.slice(1)}</option>
-                  ))}
-                </select>
-              </div>
-              
-              <div>
-                <label htmlFor="pokemon-ability" className="block text-sm font-medium text-gray-700 mb-1">Habilidade</label>
-                <select
-                  id="pokemon-ability"
-                  name="sAbility"
-                  value={filters.sAbility}
-                  onChange={(e) => {
-                    updateFilters(e);
-                    // Aplicar filtro automaticamente ao selecionar
-                    setTimeout(() => applyFilters(), 100);
-                  }}
-                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-pokeRed focus:border-pokeRed"
-                >
-                  <option value="">Todas as habilidades</option>
-                  {commonAbilities.map(ability => (
-                    <option key={ability} value={ability}>
-                      {ability.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              
-              <div>
-                <label htmlFor="pokemon-height" className="block text-sm font-medium text-gray-700 mb-1">Altura</label>
-                <select
-                  id="pokemon-height"
-                  name="sHeight"
-                  value={filters.sHeight}
-                  onChange={(e) => {
-                    updateFilters(e);
-                    // Aplicar filtro automaticamente ao selecionar
-                    setTimeout(() => applyFilters(), 100);
-                  }}
-                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-pokeRed focus:border-pokeRed"
-                >
-                  <option value="">Qualquer altura</option>
-                  <option value="small">Pequeno (menos de 1m)</option>
-                  <option value="medium">Médio (1m a 2m)</option>
-                  <option value="large">Grande (mais de 2m)</option>
-                </select>
-              </div>
-              
-              <div>
-                <label htmlFor="pokemon-weight" className="block text-sm font-medium text-gray-700 mb-1">Peso</label>
-                <select
-                  id="pokemon-weight"
-                  name="sWeight"
-                  value={filters.sWeight}
-                  onChange={(e) => {
-                    updateFilters(e);
-                    // Aplicar filtro automaticamente ao selecionar
-                    setTimeout(() => applyFilters(), 100);
-                  }}
-                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-pokeRed focus:border-pokeRed"
-                >
-                  <option value="">Qualquer peso</option>
-                  <option value="light">Leve (menos de 10kg)</option>
-                  <option value="medium">Médio (10kg a 50kg)</option>
-                  <option value="heavy">Pesado (mais de 50kg)</option>
-                </select>
-              </div>
-              
-              <div className="md:col-span-2 flex justify-end space-x-2 mt-2">
-                <button
-                  onClick={resetFilters}
-                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-colors"
-                >
-                  Limpar Filtros
-                </button>
-                <button
-                  onClick={applyFilters}
-                  className="px-4 py-2 bg-pokeRed text-white rounded-md hover:bg-opacity-90 transition-colors"
-                >
-                  Aplicar Filtros
-                </button>
-              </div>
+            <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-4 border-t border-gray-300">
+               {/* Filtro Tipo */}
+               <div>
+                 <label htmlFor="pokemon-type" className="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
+                 <select
+                   id="pokemon-type"
+                   name="sType"
+                   value={filters.sType}
+                   onChange={updateFilters}
+                   className="w-full p-2 border border-gray-300 rounded-md focus:ring-pokeRed focus:border-pokeRed"
+                 >
+                   <option value="">Todos</option>
+                   {pokemonTypes.map(type => (
+                     <option key={type} value={type}>{type.charAt(0).toUpperCase() + type.slice(1)}</option>
+                   ))}
+                 </select>
+               </div>
+               {/* Filtro Fraqueza */}
+               <div>
+                 <label htmlFor="pokemon-weakness" className="block text-sm font-medium text-gray-700 mb-1">Fraqueza</label>
+                 <select
+                   id="pokemon-weakness"
+                   name="sWeakness"
+                   value={filters.sWeakness}
+                   onChange={updateFilters}
+                   className="w-full p-2 border border-gray-300 rounded-md focus:ring-pokeRed focus:border-pokeRed"
+                 >
+                   <option value="">Todas</option>
+                   {pokemonTypes.map(type => (
+                     <option key={type} value={type}>{type.charAt(0).toUpperCase() + type.slice(1)}</option>
+                   ))}
+                 </select>
+               </div>
+               {/* Filtro Habilidade */}
+               <div>
+                 <label htmlFor="pokemon-ability" className="block text-sm font-medium text-gray-700 mb-1">Habilidade</label>
+                 <select
+                   id="pokemon-ability"
+                   name="sAbility"
+                   value={filters.sAbility}
+                   onChange={updateFilters}
+                   className="w-full p-2 border border-gray-300 rounded-md focus:ring-pokeRed focus:border-pokeRed"
+                 >
+                   <option value="">Todas</option>
+                   {commonAbilities.map(ability => (
+                     <option key={ability} value={ability}>
+                       {ability.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                     </option>
+                   ))}
+                 </select>
+               </div>
+               {/* Filtro Altura */}
+               <div>
+                 <label htmlFor="pokemon-height" className="block text-sm font-medium text-gray-700 mb-1">Altura</label>
+                 <select
+                   id="pokemon-height"
+                   name="sHeight"
+                   value={filters.sHeight}
+                   onChange={updateFilters}
+                   className="w-full p-2 border border-gray-300 rounded-md focus:ring-pokeRed focus:border-pokeRed"
+                 >
+                   <option value="">Qualquer</option>
+                   <option value="small">Pequeno (&lt; 1m)</option>
+                   <option value="medium">Médio (1m - 2m)</option>
+                   <option value="large">Grande (&gt; 2m)</option>
+                 </select>
+               </div>
+               {/* Filtro Peso */}
+               <div>
+                 <label htmlFor="pokemon-weight" className="block text-sm font-medium text-gray-700 mb-1">Peso</label>
+                 <select
+                   id="pokemon-weight"
+                   name="sWeight"
+                   value={filters.sWeight}
+                   onChange={updateFilters}
+                   className="w-full p-2 border border-gray-300 rounded-md focus:ring-pokeRed focus:border-pokeRed"
+                 >
+                   <option value="">Qualquer</option>
+                   <option value="light">Leve (&lt; 10kg)</option>
+                   <option value="medium">Médio (10kg - 50kg)</option>
+                   <option value="heavy">Pesado (&gt; 50kg)</option>
+                 </select>
+               </div>
+               {/* Botão Limpar */}
+               <div className="lg:col-span-1 flex items-end justify-end">
+                  <button
+                    onClick={resetFilters}
+                    className="w-full md:w-auto px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-colors"
+                  >
+                    Limpar Filtros
+                  </button>
+               </div>
             </div>
           )}
         </div>
-        
+
+        {/* Contagem e Ordenação */}
         <div className="mb-6 flex flex-col sm:flex-row justify-between items-center">
           <div className="mb-3 sm:mb-0">
             {!loading && games.length > 0 && (
-              <p className="text-gray-600">
+              <p className="text-gray-600 text-sm">
                 Exibindo {games.length} {games.length === 1 ? 'Pokémon' : 'Pokémons'}
-                {totalCount > games.length ? ` de aproximadamente ${totalCount}` : ''}
+                {/* {totalCount > games.length ? ` de aproximadamente ${totalCount}` : ''} */}
               </p>
             )}
+             {!loading && games.length === 0 && filters.sName && (
+                <p className="text-gray-600 text-sm">Nenhum Pokémon encontrado para "{filters.sName}".</p>
+             )}
           </div>
           <div className="flex items-center">
-            <span className="mr-2 text-gray-700">Organizar por</span>
-            <select 
-              name="sOrdering" 
-              value={filters.sOrdering} 
-              onChange={(e) => {
-                updateFilters(e);
-                // Aplicar ordenação automaticamente
-                setTimeout(() => applyFilters(), 100);
-              }} 
-              className="p-2 rounded-lg border border-gray-300"
+            <label htmlFor="pokemon-ordering" className="mr-2 text-gray-700 text-sm">Organizar por:</label>
+            <select
+              id="pokemon-ordering"
+              name="sOrdering"
+              value={filters.sOrdering}
+              onChange={updateFilters}
+              className="p-2 text-sm rounded-lg border border-gray-300 focus:ring-pokeRed focus:border-pokeRed"
             >
-              <option value="">Menor número primeiro</option>
+              <option value="">Número (Crescente)</option>
               <option value="name">Nome (A-Z)</option>
               <option value="-name">Nome (Z-A)</option>
               <option value="height">Altura (Crescente)</option>
@@ -373,62 +359,50 @@ export default function HomePage() {
             </select>
           </div>
         </div>
-        
+
+        {/* Grid de Pokémon */}
         {loading && games.length === 0 ? (
           <div className="text-center py-12">
-            <div className="pokeball-loading">
-              <div className="pokeball-loading-inner"></div>
-            </div>
-            <p className="mt-4 text-gray-600">Carregando Pokémon...</p>
+            <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-pokeRed mx-auto mb-4"></div>
+            <p className="text-gray-600">Carregando Pokémon...</p>
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
-              {games.map((pokemon, index) => {
-                // Adicionar ref ao último elemento para rolagem infinita
-                if (games.length === index + 1) {
-                  return (
-                    <div ref={lastPokemonElementRef} key={pokemon.id}>
-                      <PokemonCard pokemon={pokemon} />
-                    </div>
-                  );
-                } else {
-                  return <PokemonCard key={pokemon.id} pokemon={pokemon} />;
-                }
-              })}
-            </div>
-            
-            {games.length > 0 && (
-              <div className="mt-12 text-center">
-                {isLoadingMore ? (
-                  <div className="inline-block">
-                    <div className="pokeball-loading-small">
-                      <div className="pokeball-loading-inner-small"></div>
-                    </div>
-                    <p className="mt-2 text-gray-600">Carregando mais Pokémon...</p>
-                  </div>
-                ) : hasMore ? (
-                  <button 
-                    onClick={loadMorePokemon} 
-                    className="bg-pokeRed text-white px-8 py-3 rounded-full hover:bg-opacity-90 transition-colors shadow-md"
-                  >
-                    Carregar mais Pokémon
-                  </button>
-                ) : (
-                  <p className="text-gray-600">Não há mais Pokémon para carregar.</p>
-                )}
+            {games.length > 0 ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+                {games.map((pokemon, index) => {
+                  // Adiciona a ref ao último elemento para o Intersection Observer
+                  if (games.length === index + 1) {
+                    return (
+                      <div ref={lastPokemonElementRef} key={pokemon.id}>
+                        <PokemonCard pokemon={pokemon} />
+                      </div>
+                    );
+                  } else {
+                    return <PokemonCard key={pokemon.id} pokemon={pokemon} />;
+                  }
+                })}
+              </div>
+            ) : (
+              !loading && (
+                <div className="text-center py-12 text-gray-500">
+                  <p>Nenhum Pokémon encontrado com os filtros selecionados.</p>
+                </div>
+              )
+            )}
+
+            {/* Indicador de Carregando Mais */}
+            {isLoadingMore && (
+              <div className="text-center py-6">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-pokeRed mx-auto"></div>
+                <p className="mt-2 text-sm text-gray-500">Carregando mais...</p>
               </div>
             )}
-            
-            {games.length === 0 && !loading && (
-              <div className="text-center py-12">
-                <p className="text-gray-600">Nenhum Pokémon encontrado com os filtros selecionados.</p>
-                <button
-                  onClick={resetFilters}
-                  className="mt-4 px-4 py-2 bg-pokeRed text-white rounded-md hover:bg-opacity-90 transition-colors"
-                >
-                  Limpar Filtros
-                </button>
+
+            {/* Mensagem de Fim da Lista */}
+            {!hasMore && games.length > 0 && (
+              <div className="text-center py-6 text-gray-500 text-sm">
+                Fim da lista de Pokémon.
               </div>
             )}
           </>
@@ -437,3 +411,4 @@ export default function HomePage() {
     </div>
   );
 }
+

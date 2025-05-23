@@ -28,26 +28,38 @@ const formatPokemonNumber = (id) => {
   return `#${String(id).padStart(4, '0')}`;
 };
 
-// Função para capitalizar a primeira letra
-const capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+// Função para capitalizar a primeira letra e tratar nomes com hífen
+const capitalize = (s) => {
+    if (!s) return '';
+    return s.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+};
 
 export default function PokemonCard({ pokemon }) {
   // Estado para controlar o sprite atual
   const [currentSprite, setCurrentSprite] = useState('official_artwork'); // Inicia com a arte oficial
 
-  // Extrair os tipos do Pokémon
+  // Verificar se pokemon existe e tem id
+  if (!pokemon || !pokemon.id) {
+    // Pode retornar um placeholder ou null se o dado estiver inválido
+    console.warn("Dados inválidos para PokemonCard:", pokemon);
+    return null; 
+  }
+
+  // Extrair os tipos do Pokémon (agora são objetos {name, url})
   const types = pokemon.types || [];
   
-  // Determinar a cor de fundo com base no primeiro tipo
-  const mainType = types.length > 0 ? types[0].toLowerCase() : 'normal';
-  const bgColorClass = typeColors[mainType] || 'bg-typeNormal';
+  // Determinar a cor de fundo com base no primeiro tipo (acessando .name)
+  const mainTypeName = types.length > 0 && types[0]?.name ? types[0].name.toLowerCase() : 'normal';
+  const bgColorClass = typeColors[mainTypeName] || 'bg-typeNormal';
 
   // Formatar altura e peso
   const height = pokemon.height ? `${pokemon.height}m` : '?';
   const weight = pokemon.weight ? `${pokemon.weight}kg` : '?';
 
-  // Pegar a primeira habilidade (se houver)
-  const firstAbility = pokemon.abilities && pokemon.abilities.length > 0 ? pokemon.abilities[0].split('-').map(capitalize).join(' ') : 'N/A';
+  // Pegar a primeira habilidade (acessando .name)
+  const firstAbilityName = pokemon.abilities && pokemon.abilities.length > 0 && pokemon.abilities[0]?.name 
+                           ? capitalize(pokemon.abilities[0].name) 
+                           : 'N/A';
 
   // Obter os sprites disponíveis, garantindo que o objeto exista
   const sprites = pokemon.sprites || {};
@@ -82,15 +94,18 @@ export default function PokemonCard({ pokemon }) {
   useEffect(() => {
     if (!availableSprites['official_artwork'] && availableSprites['front_default']) {
       setCurrentSprite('front_default');
+    } else if (spriteCycleOrder.length > 0 && !spriteCycleOrder.includes(currentSprite)) {
+        // Se o sprite atual não for mais válido (raro), volta pro primeiro da lista
+        setCurrentSprite(spriteCycleOrder[0]);
     }
-  }, [availableSprites]);
+  }, [availableSprites, spriteCycleOrder]); // Adiciona spriteCycleOrder como dependência
 
   return (
     <Link href={`/home/${pokemon.id}`} className="block group">
       <div className={`pokemon-card rounded-lg shadow-md hover:shadow-xl border border-gray-200 transition-all duration-300 flex flex-col h-full ${bgColorClass}-light relative`}>
         {/* Cabeçalho do card */}
         <div className={`card-header ${bgColorClass} text-white p-2 rounded-t-lg flex justify-between items-center`}>
-          <h3 className="text-lg font-bold capitalize truncate" title={pokemon.name}>{pokemon.name}</h3>
+          <h3 className="text-lg font-bold capitalize truncate" title={capitalize(pokemon.name)}>{capitalize(pokemon.name)}</h3>
           <span className="text-sm font-medium flex-shrink-0 ml-2">{formatPokemonNumber(pokemon.id)}</span>
         </div>
         
@@ -99,7 +114,7 @@ export default function PokemonCard({ pokemon }) {
           <div className="relative w-full aspect-square">
             <img 
               src={currentImageUrl} 
-              alt={`${pokemon.name} - ${currentSprite.replace('_', ' ')}`} 
+              alt={`${capitalize(pokemon.name)} - ${currentSprite.replace('_', ' ')}`} 
               className="absolute inset-0 w-full h-full object-contain p-1 group-hover:scale-105 transition-transform duration-300"
               loading="lazy"
               onError={(e) => { e.target.onerror = null; e.target.src='/placeholder.png'; }} // Fallback em caso de erro na imagem
@@ -134,21 +149,24 @@ export default function PokemonCard({ pokemon }) {
           </div>
           <div className="text-center mt-1 pt-1 border-t border-gray-100">
              <span className="font-semibold block">Habilidade</span>
-             <span className="truncate" title={firstAbility}>{firstAbility}</span>
+             <span className="truncate" title={firstAbilityName}>{firstAbilityName}</span>
           </div>
         </div>
 
-        {/* Rodapé com tipos */}
+        {/* Rodapé com tipos (acessando .name) */}
         <div className="card-footer bg-gray-100 p-2 rounded-b-lg border-t border-gray-200">
           <div className="flex flex-wrap gap-1 justify-center">
-            {types.map((type, index) => {
-              const typeClass = typeColors[type.toLowerCase()] || 'bg-gray-400';
+            {types.map((typeInfo, index) => {
+              // Verifica se typeInfo e typeInfo.name existem
+              if (!typeInfo || !typeInfo.name) return null; 
+              const typeNameLower = typeInfo.name.toLowerCase();
+              const typeClass = typeColors[typeNameLower] || 'bg-gray-400';
               return (
                 <span 
                   key={index} 
                   className={`${typeClass} text-white text-[10px] px-2 py-0.5 rounded-full font-medium capitalize`}
                 >
-                  {type}
+                  {capitalize(typeInfo.name)} 
                 </span>
               );
             })}
@@ -184,4 +202,3 @@ export default function PokemonCard({ pokemon }) {
 .bg-typeSteel-light { background-color: #f5f5f5; }
 .bg-typeFairy-light { background-color: #fff0f5; }
 */
-

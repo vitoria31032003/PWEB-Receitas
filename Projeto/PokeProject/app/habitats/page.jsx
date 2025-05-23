@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import PokemonCard from '../components/PokemonCard';
-import { fetchGames } from '../actions/gameActions';
+import { fetchPokemonByCategory } from '../actions/gameActions'; // Usar a função de categoria
 
 // Lista de habitats de Pokémon
 const pokemonHabitats = [
@@ -11,49 +11,47 @@ const pokemonHabitats = [
   { id: 2, name: "Floresta", apiName: "forest", color: "bg-typeGrass", description: "Pokémon que habitam florestas densas e bosques" },
   { id: 3, name: "Montanha", apiName: "mountain", color: "bg-typeGround", description: "Pokémon que vivem em regiões montanhosas e elevadas" },
   { id: 4, name: "Planície", apiName: "grassland", color: "bg-typeNormal", description: "Pokémon que habitam campos abertos e planícies" },
-  { id: 5, name: "Água doce", apiName: "waters-edge", color: "bg-typeWater", description: "Pokémon que vivem em lagos, rios e outros corpos de água doce" }, // Mapeado para waters-edge
+  { id: 5, name: "Água doce", apiName: "waters-edge", color: "bg-typeWater", description: "Pokémon que vivem em lagos, rios e outros corpos de água doce" },
   { id: 6, name: "Água salgada", apiName: "sea", color: "bg-typeWater", description: "Pokémon que habitam oceanos e mares" },
   { id: 7, name: "Urbano", apiName: "urban", color: "bg-typeSteel", description: "Pokémon que se adaptaram a viver em cidades e ambientes urbanos" },
   { id: 8, name: "Raro", apiName: "rare", color: "bg-typePsychic", description: "Pokémon raros que habitam locais específicos e difíceis de encontrar" },
-  { id: 9, name: "Terreno Acidentado", apiName: "rough-terrain", color: "bg-typeFighting", description: "Pokémon que vivem em terrenos irregulares e acidentados" } // Adicionado/Ajustado
+  { id: 9, name: "Terreno Acidentado", apiName: "rough-terrain", color: "bg-typeFighting", description: "Pokémon que vivem em terrenos irregulares e acidentados" }
 ];
 
 // Reutilizar listas de tipos e habilidades
 const pokemonTypes = [
-  "normal", "fire", "water", "grass", "electric", "ice", "fighting", 
-  "poison", "ground", "flying", "psychic", "bug", "rock", "ghost", 
-  "dragon", "dark", "steel", "fairy"
-];
+    "normal", "fire", "water", "grass", "electric", "ice", "fighting",
+    "poison", "ground", "flying", "psychic", "bug", "rock", "ghost",
+    "dragon", "dark", "steel", "fairy"
+  ];
 const commonAbilities = [
-  "overgrow", "blaze", "torrent", "shield-dust", "shed-skin", "compound-eyes",
-  "swarm", "keen-eye", "run-away", "intimidate", "static", "sand-veil", 
-  "lightning-rod", "levitate", "chlorophyll", "effect-spore", "synchronize",
-  "clear-body", "natural-cure", "serene-grace", "swift-swim", "battle-armor"
-];
+    "overgrow", "blaze", "torrent", "shield-dust", "shed-skin", "compound-eyes",
+    "swarm", "keen-eye", "run-away", "intimidate", "static", "sand-veil",
+    "lightning-rod", "levitate", "chlorophyll", "effect-spore", "synchronize",
+    "clear-body", "natural-cure", "serene-grace", "swift-swim", "battle-armor"
+  ];
 
 export default function HabitatsPage() {
   const [loadingInitial, setLoadingInitial] = useState(true);
-  const [selectedHabitat, setSelectedHabitat] = useState(null); // Armazena o objeto do habitat selecionado
+  const [selectedHabitat, setSelectedHabitat] = useState(null); // Armazena o objeto do habitat
   const [pokemonList, setPokemonList] = useState([]);
-  const [filters, setFilters] = useState({ 
-    sName: ".", 
+  const [filters, setFilters] = useState({ // Estado inicial dos filtros PADRONIZADO
+    sName: ".", // Mantendo "." para nome, pois a lógica de busca pode depender disso
     sType: ".",
     sWeakness: ".",
     sAbility: ".",
     sHeight: ".",
     sWeight: ".",
-    sHabitat: ".", // Será definido quando um habitat for selecionado
-    sOrdering: ".", 
-    sPage: 1 
+    sOrdering: ".",
+    sPage: 1
   });
-  const [loading, setLoading] = useState(false); // Loading para busca/filtros
+  const [loading, setLoading] = useState(false);
   const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
-  const [isLoadingMore, setIsLoadingMore] = useState(false); // Loading para rolagem infinita
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [searchTimeout, setSearchTimeout] = useState(null);
-  const [totalCount, setTotalCount] = useState(0); // Estimativa do total
 
-  // Referência para o elemento de observação da rolagem infinita
+  // Referência para o elemento de observação da rolagem infinita (mantido)
   const observer = useRef();
   const lastPokemonElementRef = useCallback(node => {
     if (loading || isLoadingMore) return;
@@ -67,88 +65,85 @@ export default function HabitatsPage() {
   }, [loading, isLoadingMore, hasMore]);
 
   useEffect(() => {
-    // Simular carregamento inicial da lista de habitats
+    // Simular carregamento inicial da lista de habitats (mantido)
     const timer = setTimeout(() => {
       setLoadingInitial(false);
     }, 500);
     return () => clearTimeout(timer);
   }, []);
 
-  // Carregar Pokémon quando um habitat é selecionado ou filtros mudam
+  // Carregar Pokémon quando um habitat é selecionado ou filtros mudam (mantido)
   useEffect(() => {
-    if (!selectedHabitat) return; // Não busca se nenhum habitat está selecionado
+    if (!selectedHabitat) return;
 
+    setLoading(true);
     const fetchData = async () => {
-      setLoading(true);
-      setIsLoadingMore(false);
       try {
-        // Usa o ID do habitat para o filtro sHabitat
-        const currentFilters = { ...filters, sHabitat: selectedHabitat.id }; 
-        const data = await fetchGames(currentFilters);
-        
-        if (currentFilters.sPage === 1) {
-          setPokemonList(data);
-          setTotalCount(data.length);
+        const result = await fetchPokemonByCategory("pokemon-habitat", selectedHabitat.apiName, filters);
+
+        if (filters.sPage === 1) {
+          setPokemonList(result.pokemon);
         } else {
-          const newPokemon = data.filter(newPoke => 
+          const newPokemon = result.pokemon.filter(newPoke =>
             !pokemonList.some(existingPoke => existingPoke.id === newPoke.id)
           );
           setPokemonList(prev => [...prev, ...newPokemon]);
         }
-        
-        if (data.length < 40) {
-          setHasMore(false);
-        } else {
-          setHasMore(true);
-        }
+        setHasMore(result.hasMore);
 
       } catch (error) {
-        console.error("Erro ao buscar Pokémon:", error);
+        console.error("Erro ao buscar Pokémon por habitat:", error);
         setHasMore(false);
       } finally {
         setLoading(false);
         setIsLoadingMore(false);
       }
     };
-    
+
     fetchData();
   }, [selectedHabitat, filters]);
 
-  // Atualiza os filtros
+  // Atualiza os filtros (PADRONIZADO)
   const updateFilters = (event) => {
     const { name, value } = event.target;
-    setFilters((prev) => ({ ...prev, [name]: value, sPage: 1 }));
-    
-    if (name === 'sName') {
+    const filterValue = value === "" ? "." : value; // Usa "." como padrão para "todos"
+    setFilters((prev) => ({ ...prev, [name]: filterValue, sPage: 1 }));
+
+    if (name === "sName") {
       if (searchTimeout) clearTimeout(searchTimeout);
-      const newTimeout = setTimeout(() => { /* Triggered by useEffect */ }, 500);
-      setSearchTimeout(newTimeout);
+      if (filterValue.length > 2 || filterValue === ".") {
+          const newTimeout = setTimeout(() => {
+            // A busca será acionada pelo useEffect
+          }, 500);
+          setSearchTimeout(newTimeout);
+      }
     }
   };
 
+  // Reseta os filtros (PADRONIZADO)
   const resetFilters = () => {
-    setFilters({ 
-      sName: ".", 
+    setFilters({
+      sName: ".",
       sType: ".",
       sWeakness: ".",
       sAbility: ".",
       sHeight: ".",
       sWeight: ".",
-      sHabitat: selectedHabitat.id, // Mantém o habitat selecionado
-      sOrdering: ".", 
-      sPage: 1 
+      sOrdering: ".",
+      sPage: 1
     });
-    setPokemonList([]);
-    setHasMore(true);
-    setShowAdvancedSearch(false);
   };
 
+  // Aplica os filtros (PADRONIZADO)
   const applyFilters = () => {
-    setFilters(prev => ({ ...prev, sPage: 1 }));
-    setPokemonList([]);
-    setHasMore(true);
+    if (filters.sPage !== 1) {
+        setFilters(prev => ({ ...prev, sPage: 1 }));
+    } else {
+        setFilters(prev => ({...prev})); // Força re-trigger do useEffect
+    }
   };
 
+  // Carrega mais Pokémon (PADRONIZADO)
   const loadMorePokemon = () => {
     if (!isLoadingMore && hasMore && !loading) {
       setIsLoadingMore(true);
@@ -156,30 +151,22 @@ export default function HabitatsPage() {
     }
   };
 
-  // Função para selecionar um habitat (passa o objeto completo)
+  // Função para selecionar um habitat (PADRONIZADO)
   const handleSelectHabitat = (habitat) => {
     setSelectedHabitat(habitat);
     setFilters({ // Reseta filtros ao selecionar novo habitat
-      sName: ".", 
-      sType: ".", 
-      sWeakness: ".",
-      sAbility: ".",
-      sHeight: ".",
-      sWeight: ".",
-      sHabitat: habitat.id, 
-      sOrdering: ".", 
-      sPage: 1 
+      sName: ".", sType: ".", sWeakness: ".", sAbility: ".", sHeight: ".", sWeight: ".", sOrdering: ".", sPage: 1
     });
     setPokemonList([]);
     setHasMore(true);
     setShowAdvancedSearch(false);
   };
 
-  // Função para voltar à lista de habitats
+  // Função para voltar à lista de habitats (PADRONIZADO)
   const backToHabitats = () => {
     setSelectedHabitat(null);
     setPokemonList([]);
-    setFilters({ sName: ".", sType: ".", sWeakness: ".", sAbility: ".", sHeight: ".", sWeight: ".", sHabitat: ".", sOrdering: ".", sPage: 1 });
+    setFilters({ sName: ".", sType: ".", sWeakness: ".", sAbility: ".", sHeight: ".", sWeight: ".", sOrdering: ".", sPage: 1 });
   };
 
   // ----- Renderização -----
@@ -197,15 +184,15 @@ export default function HabitatsPage() {
 
   // Se um habitat foi selecionado, mostrar a lista de Pokémon e filtros
   if (selectedHabitat) {
-    const habitatColor = selectedHabitat.color || 'bg-gray-500';
-    const textColor = habitatColor.replace('bg-', 'text-');
+    const habitatColor = selectedHabitat.color || "bg-gray-500";
+    const textColor = habitatColor.replace("bg-", "text-");
 
     return (
       <div className="min-h-screen bg-white py-9 px-4">
         <div className="max-w-7xl mx-auto">
           {/* Botão Voltar e Título */}
           <div className="flex items-center mb-6">
-            <button 
+            <button
               onClick={backToHabitats}
               className="mr-4 bg-gray-200 hover:bg-gray-300 p-2 rounded-full transition-colors"
               aria-label="Voltar para a lista de habitats"
@@ -218,32 +205,31 @@ export default function HabitatsPage() {
               Habitat: {selectedHabitat.name}
             </h1>
           </div>
-          
+
           {/* Descrição do Habitat */}
           <div className={`${habitatColor} text-white p-4 rounded-lg mb-8 shadow`}>
              <p>{selectedHabitat.description}</p>
           </div>
 
-          {/* Barra de Filtros */}
+          {/* Barra de Filtros (PADRONIZADO) */}
           <div className="search-bar bg-gray-100 p-4 md:p-6 rounded-lg shadow-md mb-8">
             {/* Filtro por Nome */}
             <div className="flex flex-col sm:flex-row gap-4 mb-4">
               <div className="flex-grow relative">
                 <label htmlFor="pokemon-search" className="sr-only">Buscar por nome</label>
-                <input 
+                <input
                   id="pokemon-search"
-                  type="text" 
-                  name="sName" 
-                  placeholder={`Buscar em ${selectedHabitat.name}...`} 
-                  value={filters.sName}
-                  onChange={updateFilters} 
+                  type="text"
+                  name="sName"
+                  placeholder={`Buscar em ${selectedHabitat.name}...`}
+                  value={filters.sName === "." ? "" : filters.sName} // Mostrar vazio se for "."
+                  onChange={updateFilters}
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pokeRed focus:border-transparent"
                 />
-                {filters.sName && (
-                  <button 
+                {filters.sName !== "." && (
+                  <button
                     onClick={() => {
                       setFilters(prev => ({ ...prev, sName: ".", sPage: 1 }));
-                      setPokemonList([]); setHasMore(true);
                     }}
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
                     aria-label="Limpar busca"
@@ -254,8 +240,8 @@ export default function HabitatsPage() {
                   </button>
                 )}
               </div>
-              <button 
-                onClick={applyFilters} 
+              <button
+                onClick={applyFilters}
                 className="bg-pokeRed text-white px-6 py-3 rounded-lg hover:bg-opacity-90 transition-colors flex items-center justify-center sm:w-auto w-full"
               >
                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -264,32 +250,28 @@ export default function HabitatsPage() {
                 Buscar
               </button>
             </div>
-            
+
             {/* Botão de Filtros Avançados */}
             <div className="text-right mb-4">
-              <button 
-                onClick={() => setShowAdvancedSearch(!showAdvancedSearch)} 
+              <button
+                onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
                 className="text-sm text-pokeRed hover:text-red-700 transition-colors flex items-center justify-end"
               >
                 {showAdvancedSearch ? (
                   <>
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                    </svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>
                     Ocultar filtros avançados
                   </>
                 ) : (
                   <>
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                     Mostrar filtros avançados
                   </>
                 )}
               </button>
             </div>
 
-            {/* Filtros Avançados */}
+            {/* Filtros Avançados (PADRONIZADO) */}
             {showAdvancedSearch && (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-4 border-t border-gray-300">
                  {/* Filtro Tipo */}
@@ -337,7 +319,7 @@ export default function HabitatsPage() {
                      <option value=".">Todas</option>
                      {commonAbilities.map(ability => (
                        <option key={ability} value={ability}>
-                         {ability.split(\'-\'').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(\' \')}
+                         {ability.split("-").map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(" ")}
                        </option>
                      ))}
                    </select>
@@ -374,38 +356,41 @@ export default function HabitatsPage() {
                      <option value="heavy">Pesado (&gt; 50kg)</option>
                    </select>
                  </div>
-                 {/* Botões Limpar/Aplicar */}
-                 <div className="md:col-span-2 lg:col-span-3 flex justify-end space-x-2 mt-2">
-                   <button
-                     onClick={resetFilters}
-                     className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-colors"
-                   >
-                     Limpar Filtros
-                   </button>
+                 {/* Botão Limpar */}
+                 <div className="lg:col-span-1 flex items-end justify-end">
+                    <button
+                      onClick={resetFilters}
+                      className="w-full md:w-auto px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-colors"
+                    >
+                      Limpar Filtros
+                    </button>
                  </div>
               </div>
             )}
           </div>
 
-          {/* Contagem e Ordenação */}
+          {/* Contagem e Ordenação (PADRONIZADO) */}
           <div className="mb-6 flex flex-col sm:flex-row justify-between items-center">
             <div className="mb-3 sm:mb-0">
               {!loading && pokemonList.length > 0 && (
-                <p className="text-gray-600">
-                  Exibindo {pokemonList.length} Pokémon
+                <p className="text-gray-600 text-sm">
+                  Exibindo {pokemonList.length} Pokémon do habitat {selectedHabitat.name}
                 </p>
+              )}
+               {!loading && pokemonList.length === 0 && (
+                 <p className="text-gray-600 text-sm">Nenhum Pokémon encontrado para os filtros selecionados.</p>
               )}
             </div>
             <div className="flex items-center">
-              <label htmlFor="pokemon-ordering" className="mr-2 text-gray-700">Organizar por</label>
-              <select 
+              <label htmlFor="pokemon-ordering" className="mr-2 text-gray-700 text-sm">Organizar por:</label>
+              <select
                 id="pokemon-ordering"
-                name="sOrdering" 
+                name="sOrdering"
                 value={filters.sOrdering}
-                onChange={updateFilters} 
-                className="p-2 rounded-lg border border-gray-300 bg-white"
+                onChange={updateFilters}
+                className="p-2 text-sm rounded-lg border border-gray-300 focus:ring-pokeRed focus:border-pokeRed"
               >
-                <option value=".">Número (Padrão)</option>
+                <option value=".">Número (Crescente)</option>
                 <option value="name">Nome (A-Z)</option>
                 <option value="-name">Nome (Z-A)</option>
                 <option value="height">Altura (Crescente)</option>
@@ -416,84 +401,74 @@ export default function HabitatsPage() {
             </div>
           </div>
 
-          {/* Grid de Pokémon */}
+          {/* Grid de Pokémon (PADRONIZADO) */}
           {loading && pokemonList.length === 0 ? (
             <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-pokeRed mx-auto"></div>
-              <p className="mt-4 text-gray-600">Carregando Pokémon...</p>
-            </div>
-          ) : pokemonList.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
-              {pokemonList.map((pokemon, index) => {
-                if (pokemonList.length === index + 1) {
-                  return (
-                    <div ref={lastPokemonElementRef} key={pokemon.id}>
-                      <PokemonCard pokemon={pokemon} />
-                    </div>
-                  );
-                } else {
-                  return <PokemonCard key={pokemon.id} pokemon={pokemon} />;
-                }
-              })}
+              <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-pokeRed mx-auto mb-4"></div>
+              <p className="text-gray-600">Carregando Pokémon...</p>
             </div>
           ) : (
-            <div className="text-center py-12">
-              <p className="text-xl text-gray-600">Nenhum Pokémon encontrado com os filtros aplicados.</p>
-              <button
-                onClick={resetFilters}
-                className="mt-4 px-4 py-2 bg-pokeBlue text-white rounded-md hover:bg-opacity-90 transition-colors"
-              >
-                Limpar Filtros
-              </button>
-            </div>
-          )}
+            <>
+              {pokemonList.length > 0 ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+                  {pokemonList.map((pokemon, index) => {
+                    if (pokemonList.length === index + 1) {
+                      return (
+                        <div ref={lastPokemonElementRef} key={pokemon.id}>
+                          <PokemonCard pokemon={pokemon} />
+                        </div>
+                      );
+                    } else {
+                      return <PokemonCard key={pokemon.id} pokemon={pokemon} />;
+                    }
+                  })}
+                </div>
+              ) : (
+                !loading && (
+                  <div className="text-center py-12 text-gray-500">
+                    <p>Nenhum Pokémon encontrado com os filtros selecionados para o habitat {selectedHabitat.name}.</p>
+                  </div>
+                )
+              )}
 
-          {/* Indicador de Carregamento da Rolagem Infinita */}
-          {isLoadingMore && (
-            <div className="text-center py-8">
-               <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-pokeRed mx-auto"></div>
-              <p className="mt-2 text-gray-600">Carregando mais Pokémon...</p>
-            </div>
-          )}
+              {/* Indicador de Carregando Mais */}
+              {isLoadingMore && (
+                <div className="text-center py-6">
+                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-pokeRed mx-auto"></div>
+                  <p className="mt-2 text-sm text-gray-500">Carregando mais...</p>
+                </div>
+              )}
 
-          {/* Mensagem de Fim da Lista */}
-          {!hasMore && pokemonList.length > 0 && (
-            <div className="text-center py-8">
-              <p className="text-gray-600">Fim da lista de Pokémon para este habitat e filtros.</p>
-            </div>
+              {/* Mensagem de Fim da Lista */}
+              {!hasMore && pokemonList.length > 0 && (
+                <div className="text-center py-6 text-gray-500 text-sm">
+                  Fim da lista de Pokémon do habitat {selectedHabitat.name}.
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
     );
   }
 
-  // ----- Renderização da Lista de Habitats (Inicial) -----
+  // Se nenhum habitat foi selecionado, mostrar a lista de habitats
   return (
     <div className="min-h-screen bg-white py-12 px-4">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-4xl font-bold mb-8 text-center">Habitats de Pokémon</h1>
-        <p className="text-lg text-gray-700 text-center mb-12">
-          Clique em um habitat para ver todos os Pokémon correspondentes e aplicar filtros adicionais.
-        </p>
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        <h1 className="text-4xl font-bold mb-8 text-center">Explorar por Habitat</h1>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           {pokemonHabitats.map((habitat) => (
-            <button 
+            <button
               key={habitat.id}
-              onClick={() => handleSelectHabitat(habitat)} // Passa o objeto habitat
-              className="block w-full text-left transform transition-all duration-300 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pokeRed rounded-lg shadow-lg overflow-hidden cursor-pointer"
+              onClick={() => handleSelectHabitat(habitat)}
+              className={`p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 text-white text-left flex flex-col justify-between h-40 ${habitat.color}`}
             >
-              <div className={`${habitat.color} h-full`}>
-                <div className="p-6 text-white">
-                  <h2 className="text-2xl font-bold mb-2">{habitat.name}</h2>
-                  <p className="mb-4">{habitat.description}</p>
-                  <div className="flex justify-between items-center mt-4">
-                    <span className="text-sm font-semibold">Explorar habitat</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                </div>
+              <div>
+                <h2 className="text-2xl font-bold mb-2 capitalize">{habitat.name}</h2>
+                <p className="text-sm opacity-90">{habitat.description}</p>
               </div>
+              <span className="mt-2 text-right font-semibold text-lg">→</span>
             </button>
           ))}
         </div>
