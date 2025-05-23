@@ -2,19 +2,20 @@ import Link from 'next/link';
 
 export default function Header() {
     return (
-      <header className="pokedex-header sticky top-0 z-50">
-        <div className="container mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+      // Adicionado fundo escuro (bg-gray-800) e padding (py-4)
+      <header className="bg-gray-800 text-white py-4 sticky top-0 z-50 shadow-md">
+        <div className="container mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 px-4">
           <Link href="/" className="text-3xl font-bold flex items-center">
             <img 
-              src="https://www.pokemon.com/static-assets/app/static3/img/og-default-image.jpeg" 
-              alt="Pokémon Logo" 
-              className="h-10 mr-2"
+              src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" // Usando imagem da PokeAPI
+              alt="Pokébola" 
+              className="h-8 w-8 mr-2" // Ajustado tamanho
             />
             <span>Pokédex</span>
           </Link>
-          <nav className="flex flex-wrap justify-center sm:justify-end gap-4">
+          <nav className="flex flex-wrap justify-center sm:justify-end gap-x-4 gap-y-2">
             {[
-              { href: "/", label: "Página Inicial" },
+              { href: "/", label: "Inicial" }, // Nome mais curto
               { href: "/home", label: "Pokédex" },
               { href: "/tipos", label: "Tipos" },
               { href: "/geracoes", label: "Gerações" },
@@ -25,9 +26,8 @@ export default function Header() {
               <Link
                 key={href}
                 href={href}
-                className="font-semibold text-white hover:text-gray-200 
-                           transition-all duration-300
-                           rounded-lg px-3 py-2"
+                // Removido text-white (herdado do header), ajustado hover e padding
+                className="font-semibold hover:text-pokeRed transition-colors duration-200 px-2 py-1 rounded"
               >
                 {label}
               </Link>
@@ -37,3 +37,4 @@ export default function Header() {
       </header>
     );
 }
+
