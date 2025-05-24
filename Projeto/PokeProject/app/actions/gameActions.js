@@ -112,9 +112,10 @@ function applySecondaryFilters(pokemonList, filters) {
     if (sType && sType !== '.') {
         filtered = filtered.filter(p => p.types.some(t => t.name.toLowerCase() === sType.toLowerCase()));
     }
-    if (sAbility && sAbility !== '.') {
-        filtered = filtered.filter(p => p.abilities.some(a => a.name.toLowerCase() === sAbility.toLowerCase()));
-    }
+    // Não aplicar filtro de habilidade aqui se já foi o filtro principal
+    // if (sAbility && sAbility !== '.') {
+    //     filtered = filtered.filter(p => p.abilities.some(a => a.name.toLowerCase() === sAbility.toLowerCase()));
+    // }
     if (sHeight && sHeight !== '.') {
         switch (sHeight) {
             case 'small': filtered = filtered.filter(p => p.height !== null && p.height < 1); break;
@@ -246,6 +247,7 @@ export const fetchPokemonByCategory = cache(async (categoryType, categoryValue, 
             }
         }
 
+        console.log(`[fetchPokemonByCategory - ${categoryType}=${categoryValue}] Found ${pokemonRefs.length} initial refs.`); // Log initial refs
         if (pokemonRefs.length === 0) return { pokemon: [], hasMore: false };
 
         let filteredRefs = pokemonRefs;
@@ -253,6 +255,7 @@ export const fetchPokemonByCategory = cache(async (categoryType, categoryValue, 
             filteredRefs = pokemonRefs.filter(ref => ref.name.toLowerCase().includes(sName.toLowerCase()));
         }
 
+        console.log(`[fetchPokemonByCategory - ${categoryType}=${categoryValue}] Refs after name filter (${sName}): ${filteredRefs.length}`); // Log refs after name filter
         const totalFiltered = filteredRefs.length;
         const paginatedRefs = filteredRefs.slice(offset, offset + limit);
         const hasMore = totalFiltered > (offset + limit);
@@ -261,16 +264,25 @@ export const fetchPokemonByCategory = cache(async (categoryType, categoryValue, 
 
         const detailPromises = paginatedRefs.map(ref => {
             let detailUrl = ref.url;
-            if (detailUrl.includes('/pokemon-species/')) {
-                const speciesId = detailUrl.split('/').filter(Boolean).pop();
-                detailUrl = `https://pokeapi.co/api/v2/pokemon/${speciesId}`;
-            }
+            // IMPORTANTE: A API de Habilidade retorna URLs de Pokémon, não de Species
+            // if (detailUrl.includes('/pokemon-species/')) { // Esta verificação não é necessária para Habilidades
+            //     const speciesId = detailUrl.split('/').filter(Boolean).pop();
+            //     detailUrl = `https://pokeapi.co/api/v2/pokemon/${speciesId}`;
+            // }
             return fetchPokemonDetailsByUrl(detailUrl);
         });
 
+        console.log(`[fetchPokemonByCategory - ${categoryType}=${categoryValue}] Fetching details for ${detailPromises.length} refs...`); // Log detail fetch count
         let pokemonDetails = (await Promise.all(detailPromises)).filter(p => p !== null);
-        const { [getFilterKeyForCategory(categoryType)]: _, ...remainingFilters } = otherFilters;
+        console.log(`[fetchPokemonByCategory - ${categoryType}=${categoryValue}] Fetched ${pokemonDetails.length} details successfully.`); // Log successful details count
+
+        // Remover o filtro da categoria principal ANTES de aplicar filtros secundários
+        const filterKeyToRemove = getFilterKeyForCategory(categoryType);
+        const { [filterKeyToRemove]: _, ...remainingFilters } = otherFilters;
+        // console.log(`[fetchPokemonByCategory - ${categoryType}=${categoryValue}] Applying secondary filters:`, remainingFilters); // Log secondary filters being applied
+
         pokemonDetails = applySecondaryFilters(pokemonDetails, remainingFilters);
+        console.log(`[fetchPokemonByCategory - ${categoryType}=${categoryValue}] Details after secondary filters: ${pokemonDetails.length}`); // Log details after secondary filters
         const sortedPokemon = sortPokemonList(pokemonDetails, sOrdering);
 
         return { pokemon: sortedPokemon, hasMore };
@@ -285,7 +297,7 @@ export const fetchPokemonByCategory = cache(async (categoryType, categoryValue, 
 export const fetchAllAbilitiesWithDetails = cache(async () => {
     try {
         // 1. Buscar a lista de todas as habilidades
-        const listResponse = await fetch(`https://pokeapi.co/api/v2/ability?limit=400`);
+        const listResponse = await fetch(`https://pokeapi.co/api/v2/ability?limit=400`); // Aumentar limite se necessário
         if (!listResponse.ok) {
             throw new Error(`Falha ao buscar lista de habilidades, Status: ${listResponse.status}`);
         }
@@ -341,40 +353,47 @@ export const fetchGameDetails = cache(async (id) => {
                           evolutionChainData.push({
                               id: parseInt(pokemonId),
                               name: evoPokemonDetails.name,
-                              image: evoPokemonDetails.background_image,
+                              imageUrl: evoPokemonDetails.background_image
                           });
                       }
-                      if (chain.evolves_to?.length > 0) {
-                          for (const evolution of chain.evolves_to) await processEvolutionChain(evolution);
+                      if (chain.evolves_to && chain.evolves_to.length > 0) {
+                          await Promise.all(chain.evolves_to.map(nextChain => processEvolutionChain(nextChain)));
                       }
                   };
                   await processEvolutionChain(evolutionDataRaw.chain);
               }
-          } catch (evoError) { console.warn(`Erro ao processar cadeia de evolução:`, evoError); }
+          } catch (evolutionError) { console.warn(`Erro ao buscar/processar cadeia de evolução:`, evolutionError); }
       }
 
+      // Buscar descrição (flavor text)
       let description = "Descrição não disponível.";
       if (speciesData?.flavor_text_entries) {
-          const flavorTextEntry = speciesData.flavor_text_entries.find(e => e.language.name === 'en') || speciesData.flavor_text_entries.find(e => e.language.name === 'pt-br') || speciesData.flavor_text_entries[0];
-          if (flavorTextEntry) description = flavorTextEntry.flavor_text.replace(/\f|\n/g, ' ');
+          const flavorTextEntry = speciesData.flavor_text_entries.find(entry => entry.language.name === 'pt-br') || speciesData.flavor_text_entries.find(entry => entry.language.name === 'en');
+          if (flavorTextEntry) {
+              description = flavorTextEntry.flavor_text.replace(/\f/g, '\n').replace(/\n/g, ' '); // Limpar caracteres especiais
+          }
       }
 
-      let detailedAbilities = [];
-      if (pokemon.abilities?.length > 0) {
-          const abilityPromises = pokemon.abilities.map(abilityRef => fetchAbilityDetails(abilityRef.url));
-          detailedAbilities = (await Promise.all(abilityPromises)).filter(a => a !== null);
+      // Buscar Gênero (se disponível)
+      let genera = "";
+      if (speciesData?.genera) {
+          const generaEntry = speciesData.genera.find(entry => entry.language.name === 'pt-br') || speciesData.genera.find(entry => entry.language.name === 'en');
+          if (generaEntry) {
+              genera = generaEntry.genus;
+          }
       }
 
       return {
         ...pokemon,
-        description: description,
-        evolution_chain: evolutionChainData,
-        detailed_abilities: detailedAbilities,
+        description,
+        genera,
+        evolutionChain: evolutionChainData
       };
 
     } catch (error) {
       console.error(`Erro em fetchGameDetails para ID ${id}:`, error);
-      throw error;
+      // Retornar null ou um objeto de erro padronizado
+      return null;
     }
 });
 

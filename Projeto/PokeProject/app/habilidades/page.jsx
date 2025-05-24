@@ -2,23 +2,24 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
-import PokemonCard from '../components/PokemonCard';
-import { fetchPokemonByCategory, fetchAllAbilities } from '../actions/gameActions'; // Usar a função de categoria e buscar habilidades
+import PokemonCard from '../components/PokemonCard'; // Certifique-se que o caminho está correto
+import { fetchPokemonByCategory, fetchAllAbilitiesWithDetails } from '../actions/gameActions'; // Certifique-se que o caminho está correto
+import LoadingAnimation from '../components/LoadingAnimation'; // Componente de loading
 
-// Reutilizar listas de tipos
+// Reutilizar listas de tipos para filtros avançados
 const pokemonTypes = [
     "normal", "fire", "water", "grass", "electric", "ice", "fighting",
     "poison", "ground", "flying", "psychic", "bug", "rock", "ghost",
     "dragon", "dark", "steel", "fairy"
-  ];
+];
 
 export default function HabilidadesPage() {
   const [loadingInitial, setLoadingInitial] = useState(true);
-  const [allAbilities, setAllAbilities] = useState([]); // Lista de todas as habilidades
-  const [selectedAbility, setSelectedAbility] = useState(null); // Armazena o objeto da habilidade
+  const [allAbilities, setAllAbilities] = useState([]);
+  const [selectedAbility, setSelectedAbility] = useState(null);
   const [pokemonList, setPokemonList] = useState([]);
-  const [filters, setFilters] = useState({ // Estado inicial dos filtros PADRONIZADO
-    sName: ".", // Mantendo "." para nome
+  const [filters, setFilters] = useState({
+    sName: ".",
     sType: ".",
     sWeakness: ".",
     sHeight: ".",
@@ -31,9 +32,8 @@ export default function HabilidadesPage() {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [searchTimeout, setSearchTimeout] = useState(null);
-  const [abilitySearchTerm, setAbilitySearchTerm] = useState(""); // Para buscar na lista de habilidades
+  const [abilitySearchTerm, setAbilitySearchTerm] = useState("");
 
-  // Referência para o elemento de observação da rolagem infinita (mantido)
   const observer = useRef();
   const lastPokemonElementRef = useCallback(node => {
     if (loading || isLoadingMore) return;
@@ -46,15 +46,15 @@ export default function HabilidadesPage() {
     if (node) observer.current.observe(node);
   }, [loading, isLoadingMore, hasMore]);
 
-  // Carregar a lista completa de habilidades ao montar a página
+  // Carregar habilidades iniciais
   useEffect(() => {
     const loadAbilities = async () => {
+      setLoadingInitial(true);
       try {
-        const abilitiesData = await fetchAllAbilities();
+        const abilitiesData = await fetchAllAbilitiesWithDetails();
         setAllAbilities(abilitiesData);
       } catch (error) {
-        console.error("Erro ao buscar lista de habilidades:", error);
-        // Tratar erro, talvez mostrar mensagem
+        console.error("Erro ao buscar lista detalhada de habilidades:", error);
       } finally {
         setLoadingInitial(false);
       }
@@ -62,20 +62,19 @@ export default function HabilidadesPage() {
     loadAbilities();
   }, []);
 
-  // Carregar Pokémon quando uma habilidade é selecionada ou filtros mudam (mantido)
+  // Buscar Pokémon quando uma habilidade é selecionada ou filtros mudam
   useEffect(() => {
     if (!selectedAbility) return;
 
-    setLoading(true);
     const fetchData = async () => {
+      setLoading(true);
       try {
-        // Passa 'ability' como categoryType e o nome da habilidade
         const result = await fetchPokemonByCategory("ability", selectedAbility.name, filters);
 
         if (filters.sPage === 1) {
-          setPokemonList(result.pokemon);
+          setPokemonList(result.pokemon || []); // Garantir que seja um array
         } else {
-          const newPokemon = result.pokemon.filter(newPoke =>
+          const newPokemon = (result.pokemon || []).filter(newPoke =>
             !pokemonList.some(existingPoke => existingPoke.id === newPoke.id)
           );
           setPokemonList(prev => [...prev, ...newPokemon]);
@@ -84,6 +83,7 @@ export default function HabilidadesPage() {
 
       } catch (error) {
         console.error("Erro ao buscar Pokémon por habilidade:", error);
+        setPokemonList([]); // Limpar lista em caso de erro
         setHasMore(false);
       } finally {
         setLoading(false);
@@ -91,50 +91,48 @@ export default function HabilidadesPage() {
       }
     };
 
-    fetchData();
-  }, [selectedAbility, filters]);
+    // Debounce para busca por nome
+    if (filters.sName !== "." && filters.sName.length > 0) {
+        if (searchTimeout) clearTimeout(searchTimeout);
+        const newTimeout = setTimeout(() => {
+            fetchData();
+        }, 500); // Atraso de 500ms
+        setSearchTimeout(newTimeout);
+    } else {
+        if (searchTimeout) clearTimeout(searchTimeout);
+        fetchData(); // Busca imediata se não for filtro de nome
+    }
 
-  // Atualiza os filtros (PADRONIZADO)
+    // Limpar timeout ao desmontar ou mudar dependências
+    return () => {
+        if (searchTimeout) clearTimeout(searchTimeout);
+    };
+
+  }, [selectedAbility, filters]); // Dependências: habilidade selecionada e filtros
+
+  // Atualizar filtros
   const updateFilters = (event) => {
     const { name, value } = event.target;
-    const filterValue = value === "" ? "." : value; // Usa "." como padrão para "todos"
+    const filterValue = value === "" ? "." : value;
+    // Resetar página para 1 sempre que um filtro (exceto página) mudar
     setFilters((prev) => ({ ...prev, [name]: filterValue, sPage: 1 }));
-
-    if (name === "sName") {
-      if (searchTimeout) clearTimeout(searchTimeout);
-      if (filterValue.length > 2 || filterValue === ".") {
-          const newTimeout = setTimeout(() => {
-            // A busca será acionada pelo useEffect
-          }, 500);
-          setSearchTimeout(newTimeout);
-      }
-    }
   };
 
-  // Reseta os filtros (PADRONIZADO)
+  // Resetar filtros
   const resetFilters = () => {
     setFilters({
-      sName: ".",
-      sType: ".",
-      sWeakness: ".",
-      // Não reseta sAbility aqui, pois ele é o filtro principal da página
-      sHeight: ".",
-      sWeight: ".",
-      sOrdering: ".",
-      sPage: 1
+      sName: ".", sType: ".", sWeakness: ".", sHeight: ".", sWeight: ".", sOrdering: ".", sPage: 1
     });
+    setShowAdvancedSearch(false); // Ocultar filtros avançados ao resetar
   };
 
-  // Aplica os filtros (PADRONIZADO)
+  // Aplicar filtros (força re-fetch se a página já for 1)
   const applyFilters = () => {
-    if (filters.sPage !== 1) {
-        setFilters(prev => ({ ...prev, sPage: 1 }));
-    } else {
-        setFilters(prev => ({...prev})); // Força re-trigger do useEffect
-    }
+    // Força um re-fetch recriando o objeto de filtros (mesmo que a página seja 1)
+    setFilters(prev => ({...prev}));
   };
 
-  // Carrega mais Pokémon (PADRONIZADO)
+  // Carregar mais Pokémon
   const loadMorePokemon = () => {
     if (!isLoadingMore && hasMore && !loading) {
       setIsLoadingMore(true);
@@ -142,79 +140,65 @@ export default function HabilidadesPage() {
     }
   };
 
-  // Função para selecionar uma habilidade (PADRONIZADO)
+  // Selecionar habilidade
   const handleSelectAbility = (ability) => {
-    setSelectedAbility(ability); // Armazena o objeto { name: string, url: string }
-    setFilters({ // Reseta filtros ao selecionar nova habilidade
-      sName: ".", sType: ".", sWeakness: ".", sHeight: ".", sWeight: ".", sOrdering: ".", sPage: 1
-    });
-    setPokemonList([]);
-    setHasMore(true);
-    setShowAdvancedSearch(false);
+    setSelectedAbility(ability);
+    resetFilters(); // Reseta filtros ao selecionar nova habilidade
+    setPokemonList([]); // Limpa lista antiga
+    setHasMore(true); // Assume que há mais para carregar inicialmente
   };
 
-  // Função para voltar à lista de habilidades (PADRONIZADO)
+  // Voltar para a lista de habilidades
   const backToAbilities = () => {
     setSelectedAbility(null);
     setPokemonList([]);
-    setFilters({ sName: ".", sType: ".", sWeakness: ".", sHeight: ".", sWeight: ".", sOrdering: ".", sPage: 1 });
+    setAbilitySearchTerm(""); // Limpa busca de habilidade
   };
 
-  // Filtra a lista de habilidades com base no termo de busca
+  // Filtrar habilidades baseado no termo de busca
   const filteredAbilities = allAbilities.filter(ability =>
-    ability.name.toLowerCase().includes(abilitySearchTerm.toLowerCase())
+    ability.localizedName.toLowerCase().includes(abilitySearchTerm.toLowerCase())
   );
-
-  // Formata nome da habilidade (ex: "overgrow" -> "Overgrow")
-  const formatAbilityName = (name) => {
-    return name.split("-").map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(" ");
-  };
 
   // ----- Renderização -----
 
+  // Estado de Carregamento Inicial (Habilidades)
   if (loadingInitial) {
-    return (
-      <div className="min-h-screen bg-white py-12 px-4 flex justify-center items-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-pokeRed mx-auto"></div>
-          <p className="mt-4 text-gray-600">Carregando habilidades...</p>
-        </div>
-      </div>
-    );
+    return <LoadingAnimation message="Carregando Habilidades..." />;
   }
 
-  // Se uma habilidade foi selecionada, mostrar a lista de Pokémon e filtros
+  // --- Tela de Listagem de Pokémon (Habilidade Selecionada) ---
   if (selectedAbility) {
-    const abilityColor = "bg-indigo-500"; // Cor padrão para habilidades
-    const textColor = "text-indigo-500";
+    const abilityColor = "bg-indigo-600"; // Cor tema ajustada
+    const textColor = "text-indigo-700";
 
     return (
-      <div className="min-h-screen bg-white py-9 px-4">
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 via-indigo-50 to-gray-100 py-10 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          {/* Botão Voltar e Título */}
-          <div className="flex items-center mb-6">
-            <button
-              onClick={backToAbilities}
-              className="mr-4 bg-gray-200 hover:bg-gray-300 p-2 rounded-full transition-colors"
-              aria-label="Voltar para a lista de habilidades"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            <h1 className={`text-3xl md:text-4xl font-bold ${textColor}`}>
-              Habilidade: {formatAbilityName(selectedAbility.name)}
-            </h1>
+          {/* Cabeçalho: Voltar, Título, Descrição */}
+          <div className="mb-8 p-6 bg-white rounded-xl shadow-lg border border-indigo-100">
+            <div className="flex items-center mb-4">
+              <button
+                onClick={backToAbilities}
+                className="mr-4 text-indigo-600 hover:text-indigo-800 p-2 rounded-full hover:bg-indigo-100 transition-all duration-200 ease-in-out transform hover:scale-110"
+                aria-label="Voltar para a lista de habilidades"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M11 17l-5-5m0 0l5-5m-5 5h12" />
+                </svg>
+              </button>
+              <h1 className={`text-3xl md:text-4xl font-bold ${textColor}`}>
+                Habilidade: {selectedAbility.localizedName}
+              </h1>
+            </div>
+            <div className={`${abilityColor} text-white p-4 rounded-lg shadow-inner`}>
+              <p className="text-base md:text-lg">{selectedAbility.description || "Descrição não disponível."}</p>
+            </div>
           </div>
 
-          {/* Descrição da Habilidade (Pode ser adicionada buscando detalhes da habilidade) */}
-          {/* <div className={`${abilityColor} text-white p-4 rounded-lg mb-8 shadow`}>
-             <p>Descrição da habilidade aqui...</p>
-          </div> */}
-
-          {/* Barra de Filtros (PADRONIZADO) */}
-          <div className="search-bar bg-gray-100 p-4 md:p-6 rounded-lg shadow-md mb-8">
-            {/* Filtro por Nome */}
+          {/* Barra de Filtros */} 
+          <div className="search-bar bg-white p-5 rounded-xl shadow-md mb-8 border border-gray-200 sticky top-4 z-10">
+            {/* Filtro por Nome e Botão Buscar */}
             <div className="flex flex-col sm:flex-row gap-4 mb-4">
               <div className="flex-grow relative">
                 <label htmlFor="pokemon-search" className="sr-only">Buscar por nome</label>
@@ -222,17 +206,18 @@ export default function HabilidadesPage() {
                   id="pokemon-search"
                   type="text"
                   name="sName"
-                  placeholder={`Buscar Pokémon com ${formatAbilityName(selectedAbility.name)}...`}
-                  value={filters.sName === "." ? "" : filters.sName} // Mostrar vazio se for "."
+                  placeholder={`Buscar Pokémon com ${selectedAbility.localizedName}...`}
+                  value={filters.sName === "." ? "" : filters.sName}
                   onChange={updateFilters}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pokeRed focus:border-transparent"
+                  className="w-full p-3 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pokeRed focus:border-transparent transition-shadow duration-200 shadow-sm"
                 />
+                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                </div>
                 {filters.sName !== "." && (
                   <button
-                    onClick={() => {
-                      setFilters(prev => ({ ...prev, sName: ".", sPage: 1 }));
-                    }}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    onClick={() => updateFilters({ target: { name: 'sName', value: '' } })}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-full hover:bg-gray-100"
                     aria-label="Limpar busca"
                   >
                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -241,22 +226,14 @@ export default function HabilidadesPage() {
                   </button>
                 )}
               </div>
-              <button
-                onClick={applyFilters}
-                className="bg-pokeRed text-white px-6 py-3 rounded-lg hover:bg-opacity-90 transition-colors flex items-center justify-center sm:w-auto w-full"
-              >
-                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                 </svg>
-                Buscar
-              </button>
+              {/* Botão Buscar removido - busca automática com debounce */}
             </div>
 
-            {/* Botão de Filtros Avançados */}
-            <div className="text-right mb-4">
+            {/* Botão de Filtros Avançados e Ordenação */}
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-4 border-t border-gray-100 pt-4">
               <button
                 onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
-                className="text-sm text-pokeRed hover:text-red-700 transition-colors flex items-center justify-end"
+                className="text-sm text-indigo-600 hover:text-indigo-800 font-medium transition-colors flex items-center group"
               >
                 {showAdvancedSearch ? (
                   <>
@@ -270,11 +247,29 @@ export default function HabilidadesPage() {
                   </>
                 )}
               </button>
+              <div className="w-full sm:w-auto">
+                <label htmlFor="pokemon-ordering" className="sr-only">Ordenar por</label>
+                <select
+                  id="pokemon-ordering"
+                  name="sOrdering"
+                  value={filters.sOrdering}
+                  onChange={updateFilters}
+                  className="w-full sm:w-auto p-2 border border-gray-300 rounded-md text-sm focus:ring-indigo-500 focus:border-indigo-500 shadow-sm"
+                >
+                  <option value=".">Ordenar por ID</option>
+                  <option value="name">Nome (A-Z)</option>
+                  <option value="-name">Nome (Z-A)</option>
+                  <option value="height">Altura (Menor-Maior)</option>
+                  <option value="-height">Altura (Maior-Menor)</option>
+                  <option value="weight">Peso (Leve-Pesado)</option>
+                  <option value="-weight">Peso (Pesado-Leve)</option>
+                </select>
+              </div>
             </div>
 
-            {/* Filtros Avançados (PADRONIZADO - Sem filtro de Habilidade aqui) */}
+            {/* Filtros Avançados (Collapsible) */}
             {showAdvancedSearch && (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-4 border-t border-gray-300">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-4 border-t border-gray-200 animate-fade-in-down">
                  {/* Filtro Tipo */}
                  <div>
                    <label htmlFor="pokemon-type" className="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
@@ -283,7 +278,7 @@ export default function HabilidadesPage() {
                      name="sType"
                      value={filters.sType}
                      onChange={updateFilters}
-                     className="w-full p-2 border border-gray-300 rounded-md focus:ring-pokeRed focus:border-pokeRed"
+                     className="w-full p-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 shadow-sm text-sm"
                    >
                      <option value=".">Todos</option>
                      {pokemonTypes.map(type => (
@@ -291,20 +286,18 @@ export default function HabilidadesPage() {
                      ))}
                    </select>
                  </div>
-                 {/* Filtro Fraqueza */}
+                 {/* Filtro Fraqueza (Desabilitado) */}
                  <div>
-                   <label htmlFor="pokemon-weakness" className="block text-sm font-medium text-gray-700 mb-1">Fraqueza</label>
+                   <label htmlFor="pokemon-weakness" className="block text-sm font-medium text-gray-400 mb-1">Fraqueza</label>
                    <select
                      id="pokemon-weakness"
                      name="sWeakness"
                      value={filters.sWeakness}
                      onChange={updateFilters}
-                     className="w-full p-2 border border-gray-300 rounded-md focus:ring-pokeRed focus:border-pokeRed"
+                     className="w-full p-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 disabled:opacity-50 disabled:bg-gray-100 shadow-sm text-sm text-gray-400"
+                     disabled
                    >
-                     <option value=".">Todas</option>
-                     {pokemonTypes.map(type => (
-                       <option key={type} value={type}>{type.charAt(0).toUpperCase() + type.slice(1)}</option>
-                     ))}
+                     <option value=".">Todas (Indisponível)</option>
                    </select>
                  </div>
                  {/* Filtro Altura */}
@@ -315,7 +308,7 @@ export default function HabilidadesPage() {
                      name="sHeight"
                      value={filters.sHeight}
                      onChange={updateFilters}
-                     className="w-full p-2 border border-gray-300 rounded-md focus:ring-pokeRed focus:border-pokeRed"
+                     className="w-full p-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 shadow-sm text-sm"
                    >
                      <option value=".">Qualquer</option>
                      <option value="small">Pequeno (&lt; 1m)</option>
@@ -331,7 +324,7 @@ export default function HabilidadesPage() {
                      name="sWeight"
                      value={filters.sWeight}
                      onChange={updateFilters}
-                     className="w-full p-2 border border-gray-300 rounded-md focus:ring-pokeRed focus:border-pokeRed"
+                     className="w-full p-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 shadow-sm text-sm"
                    >
                      <option value=".">Qualquer</option>
                      <option value="light">Leve (&lt; 10kg)</option>
@@ -339,13 +332,13 @@ export default function HabilidadesPage() {
                      <option value="heavy">Pesado (&gt; 50kg)</option>
                    </select>
                  </div>
-                 {/* Espaço vazio ou outro filtro se necessário */}
-                 <div className="md:col-span-1"></div>
-                 {/* Botão Limpar */}
+                 {/* Espaço vazio para alinhar botão */}
+                 <div className="lg:col-span-1"></div>
+                 {/* Botão Limpar Filtros */}
                  <div className="lg:col-span-1 flex items-end justify-end">
                     <button
                       onClick={resetFilters}
-                      className="w-full md:w-auto px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-colors"
+                      className="w-full md:w-auto px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors shadow-sm text-sm font-medium"
                     >
                       Limpar Filtros
                     </button>
@@ -354,123 +347,106 @@ export default function HabilidadesPage() {
             )}
           </div>
 
-          {/* Contagem e Ordenação (PADRONIZADO) */}
-          <div className="mb-6 flex flex-col sm:flex-row justify-between items-center">
-            <div className="mb-3 sm:mb-0">
-              {!loading && pokemonList.length > 0 && (
-                <p className="text-gray-600 text-sm">
-                  Exibindo {pokemonList.length} Pokémon com a habilidade {formatAbilityName(selectedAbility.name)}
-                </p>
-              )}
-               {!loading && pokemonList.length === 0 && (
-                 <p className="text-gray-600 text-sm">Nenhum Pokémon encontrado para os filtros selecionados.</p>
-              )}
-            </div>
-            <div className="flex items-center">
-              <label htmlFor="pokemon-ordering" className="mr-2 text-gray-700 text-sm">Organizar por:</label>
-              <select
-                id="pokemon-ordering"
-                name="sOrdering"
-                value={filters.sOrdering}
-                onChange={updateFilters}
-                className="p-2 text-sm rounded-lg border border-gray-300 focus:ring-pokeRed focus:border-pokeRed"
-              >
-                <option value=".">Número (Crescente)</option>
-                <option value="name">Nome (A-Z)</option>
-                <option value="-name">Nome (Z-A)</option>
-                <option value="height">Altura (Crescente)</option>
-                <option value="-height">Altura (Decrescente)</option>
-                <option value="weight">Peso (Crescente)</option>
-                <option value="-weight">Peso (Decrescente)</option>
-              </select>
-            </div>
+          {/* Contagem de Pokémon */}
+          <div className="mb-6 text-center sm:text-left">
+            {!loading && pokemonList.length > 0 && (
+              <p className="text-gray-600 text-sm">
+                Exibindo {pokemonList.length} Pokémon com a habilidade <span className="font-semibold text-indigo-700">{selectedAbility.localizedName}</span>
+              </p>
+            )}
+             {!loading && pokemonList.length === 0 && !hasMore && (
+               <p className="text-gray-600 text-sm">Nenhum Pokémon encontrado com esta habilidade e filtros aplicados.</p>
+             )}
           </div>
 
-          {/* Grid de Pokémon (PADRONIZADO) */}
-          {loading && pokemonList.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-pokeRed mx-auto mb-4"></div>
-              <p className="text-gray-600">Carregando Pokémon...</p>
+          {/* Grid de Pokémon */}
+          {loading && filters.sPage === 1 ? (
+            <LoadingAnimation message="Buscando Pokémon..." />
+          ) : pokemonList.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
+              {pokemonList.map((pokemon, index) => (
+                  <div key={pokemon.id} ref={pokemonList.length === index + 1 ? lastPokemonElementRef : null}>
+                    <PokemonCard pokemon={pokemon} />
+                  </div>
+              ))}
             </div>
           ) : (
-            <>
-              {pokemonList.length > 0 ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
-                  {pokemonList.map((pokemon, index) => {
-                    if (pokemonList.length === index + 1) {
-                      return (
-                        <div ref={lastPokemonElementRef} key={pokemon.id}>
-                          <PokemonCard pokemon={pokemon} />
-                        </div>
-                      );
-                    } else {
-                      return <PokemonCard key={pokemon.id} pokemon={pokemon} />;
-                    }
-                  })}
+            !loading && (
+                <div className="text-center py-16 bg-white rounded-lg shadow border border-gray-200 mt-8">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <p className="mt-5 text-xl font-medium text-gray-700">Nenhum Pokémon encontrado.</p>
+                  <p className="mt-2 text-sm text-gray-500">Tente ajustar os filtros ou volte para escolher outra habilidade.</p>
                 </div>
-              ) : (
-                !loading && (
-                  <div className="text-center py-12 text-gray-500">
-                    <p>Nenhum Pokémon encontrado com os filtros selecionados para a habilidade {formatAbilityName(selectedAbility.name)}.</p>
-                  </div>
-                )
-              )}
+            )
+          )}
 
-              {/* Indicador de Carregando Mais */}
-              {isLoadingMore && (
-                <div className="text-center py-6">
-                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-pokeRed mx-auto"></div>
-                  <p className="mt-2 text-sm text-gray-500">Carregando mais...</p>
-                </div>
-              )}
+          {/* Indicador de Carregando Mais */}
+          {isLoadingMore && (
+            <div className="text-center py-10">
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500 mx-auto mb-3"></div>
+              <p className="text-gray-600 text-sm font-medium">Carregando mais Pokémon...</p>
+            </div>
+          )}
 
-              {/* Mensagem de Fim da Lista */}
-              {!hasMore && pokemonList.length > 0 && (
-                <div className="text-center py-6 text-gray-500 text-sm">
-                  Fim da lista de Pokémon com a habilidade {formatAbilityName(selectedAbility.name)}.
-                </div>
-              )}
-            </>
+          {/* Mensagem de Fim da Lista */}
+          {!hasMore && !loading && !isLoadingMore && pokemonList.length > 0 && (
+            <p className="text-center text-gray-500 py-10 font-medium text-lg">Fim da lista de Pokémon.</p>
           )}
         </div>
       </div>
     );
   }
 
-  // Se nenhuma habilidade foi selecionada, mostrar a lista de habilidades com busca
+  // --- Tela de Seleção de Habilidades ---
   return (
-    <div className="min-h-screen bg-white py-12 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-4xl font-bold mb-8 text-center">Explorar por Habilidade</h1>
+        <h1 className="text-4xl md:text-5xl font-extrabold text-center text-gray-800 mb-10 tracking-tight">
+          Escolha uma <span className="text-indigo-600">Habilidade</span>
+        </h1>
 
-        {/* Barra de Busca para Habilidades */}
-        <div className="mb-8 max-w-lg mx-auto">
-          <label htmlFor="ability-search" className="sr-only">Buscar Habilidade</label>
+        {/* Barra de Busca de Habilidades */}
+        <div className="mb-10 max-w-2xl mx-auto relative shadow-sm">
+          <label htmlFor="ability-search" className="sr-only">Buscar habilidade</label>
           <input
             id="ability-search"
             type="text"
-            placeholder="Buscar habilidade..."
+            placeholder="Buscar habilidade pelo nome..."
             value={abilitySearchTerm}
             onChange={(e) => setAbilitySearchTerm(e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pokeRed focus:border-transparent"
+            className="w-full p-4 pl-12 border border-gray-300 rounded-full focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-shadow duration-200 text-lg"
           />
+          <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
         </div>
 
-        {/* Lista de Habilidades Filtrada */}
+        {/* Grid de Habilidades */}
         {filteredAbilities.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
             {filteredAbilities.map((ability) => (
               <button
-                key={ability.name}
-                onClick={() => handleSelectAbility(ability)} // Passa o objeto { name, url }
-                className={`p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 text-white text-center bg-indigo-500 hover:bg-indigo-600`}
+                key={ability.id}
+                onClick={() => handleSelectAbility(ability)}
+                className="group block p-5 border border-gray-200 rounded-lg hover:shadow-lg hover:border-indigo-400 transition-all duration-300 ease-in-out text-left bg-white transform hover:-translate-y-1 hover:scale-103 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
               >
-                <h2 className="text-lg font-semibold capitalize">{formatAbilityName(ability.name)}</h2>
+                <h2 className="text-lg font-semibold text-indigo-700 group-hover:text-indigo-800 transition-colors duration-200 truncate" title={ability.localizedName}>{ability.localizedName}</h2>
+                <p className="text-sm text-gray-500 mt-1 line-clamp-2 group-hover:text-gray-600 transition-colors duration-200" title={ability.description || "Sem descrição"}>{ability.description || "Sem descrição"}</p>
               </button>
             ))}
           </div>
         ) : (
-          <p className="text-center text-gray-500 mt-8">Nenhuma habilidade encontrada com o termo "{abilitySearchTerm}".</p>
+          <div className="text-center py-16 bg-white rounded-lg shadow border border-gray-200 mt-10">
+            <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p className="mt-5 text-xl font-medium text-gray-700">Nenhuma habilidade encontrada.</p>
+            {abilitySearchTerm && <p className="mt-2 text-sm text-gray-500">Verifique o termo buscado: "{abilitySearchTerm}".</p>}
+          </div>
         )}
       </div>
     </div>
