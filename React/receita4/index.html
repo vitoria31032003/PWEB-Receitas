@@ -1,145 +1,59 @@
-
 <!DOCTYPE html>
-
-
-
 <html>
-
-
-
-   <head>
-
-
-
-      <title>ReceitaReact - 3</title>      
-
-
-
-   </head>
-
-
-
-   <body>
-
-
-
-      <div id="app">
-
-
-
-      </div>
-
-
-
-
-
-
-
-      <script src="libs/react.js"></script>
-
-
-
-      <script src="libs/react-dom.js"></script>
-
-
-
-      <script src="libs/babel.js"></script>
-
-
-
-            
-
-
-
-      <script type="text/babel">
-
-
-
-                 
-
-        const TabelaBebidas = ({titulo,cabecalhos:[cabecalho1,cabecalho2] }) => {
-
-
-            return (
-
-
-
-            <div>
-
-
-
-                <h1>{titulo}</h1>
-
-
-
-         <table id="tabela" border="1">
-
-
-
-            <thead>
-
-
-
-               <tr><th>{cabecalho1}</th><th>{cabecalho2}</th></tr>
-
-
-
-            </thead>
-
-
-
-            <tbody>
-
-
-
-               <tr><td>Havana</td><td>Engenho Anísio Santiago</td></tr>
-
-
-
-            </tbody>
-
-
-
-         </table>
-
-
-
-      </div>
-
-
-
-            )  
-
-
-
-}
-
-
-
-
-
-const valoresCabecalhos = ["Nome", "Marca"]
-
-
-
-ReactDOM.render(
-
-
-
-   <TabelaBebidas titulo="minha tabela de cana" cabecalhos={ valoresCabecalhos }/>
-
-
-
-            ,
-
-
-
-   document.getElementById("app"))
-
-
-
-      </script>
-
-   </body>
-
+  <head>
+    <title>ReceitaReact - 3</title>      
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div id="app"></div>
+
+    <script src="https://unpkg.com/react@17/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <script type="text/babel">
+      const TabelaBebidas = ({ titulo, cabecalhos, dados }) => {
+        return (
+          <div>
+            <h1>{titulo}</h1>
+            <table id="tabela" border="1">
+              <thead>
+                <tr>
+                  {cabecalhos.map((cabecalho, index) => (
+                    <th key={index}>{cabecalho}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {dados.map((linha, linhaIndex) => (
+                  <tr key={linhaIndex}>
+                    {linha.map((celula, celulaIndex) => (
+                      <td key={celulaIndex}>{celula}</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        );
+      };
+
+      const valoresCabecalhos = ["Nome", "Marca", "Origem", "Teor Alcoólico"];
+
+      const conteudoTabela = [
+        ["Havana", "Engenho Anísio Santiago", "Brasil", "47%"],
+        ["Absolut", "Pernod Ricard", "Suécia", "40%"],
+        ["Johnnie Walker", "Diageo", "Escócia", "43%"],
+      ];
+
+      ReactDOM.render(
+        <TabelaBebidas 
+          titulo="Tabela de Cana" 
+          cabecalhos={valoresCabecalhos} 
+          dados={conteudoTabela} 
+        />,
+        document.getElementById("app")
+      );
+    </script>
+  </body>
 </html>

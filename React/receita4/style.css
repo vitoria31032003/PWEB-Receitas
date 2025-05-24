@@ -1,0 +1,77 @@
+body, h1, table, th, td {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #ADD8E6;
+  color: #003354;
+  text-align: center;
+  padding: 40px 20px;
+}
+
+h1 {
+  color: #00416A;
+  font-size: 2.5em;
+  margin-bottom: 30px;
+  font-weight: bold;
+}
+
+
+a {
+  display: inline-block;
+  margin: 20px;
+  padding: 12px 24px;
+  background-color: #00416A;
+  color: white;
+  text-decoration: none;
+  border-radius: 6px;
+  font-size: 1em;
+  transition: background-color 0.3s ease;
+}
+
+a:hover {
+  background-color: #003354;
+}
+
+
+#tabela {
+  width: 85%;
+  max-width: 960px;
+  margin: 0 auto;
+  border-collapse: collapse;
+  border-radius: 10px;
+  overflow: hidden;
+  background-color: #F0F8FF; 
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+
+#tabela th {
+  background-color: #00416A;
+  color: white;
+  padding: 14px 10px;
+  font-size: 1.1em;
+  font-weight: 600;
+  border-bottom: 2px solid #003354;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+
+#tabela td {
+  padding: 12px 10px;
+  background-color: #eaf6ff;
+  font-size: 1em;
+  color: #003354;
+  border-bottom: 1px solid #ccc;
+  text-align: center;
+}
+
+
+#tabela tr:hover td {
+  background-color: #d1e7f7;
+}
