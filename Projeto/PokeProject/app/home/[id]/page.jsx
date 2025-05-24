@@ -1,55 +1,57 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react'; // Importar 'use' do React
+import { useParams } from 'next/navigation'; // Importar useParams
 import { fetchGameDetails } from '../../actions/gameActions';
 import Link from 'next/link';
 
-// Mapeamento de tipos para classes CSS
-const typeClasses = {
-  normal: 'type-normal',
-  fire: 'type-fire',
-  water: 'type-water',
-  grass: 'type-grass',
-  electric: 'type-electric',
-  ice: 'type-ice',
-  fighting: 'type-fighting',
-  poison: 'type-poison',
-  ground: 'type-ground',
-  flying: 'type-flying',
-  psychic: 'type-psychic',
-  bug: 'type-bug',
-  rock: 'type-rock',
-  ghost: 'type-ghost',
-  dragon: 'type-dragon',
-  dark: 'type-dark',
-  steel: 'type-steel',
-  fairy: 'type-fairy',
+// Mapeamento de tipos para classes CSS e cores de fundo (mantido)
+const typeStyles = {
+  normal: { class: 'type-normal', bg: 'bg-typeNormal' },
+  fire: { class: 'type-fire', bg: 'bg-typeFire' },
+  water: { class: 'type-water', bg: 'bg-typeWater' },
+  grass: { class: 'type-grass', bg: 'bg-typeGrass' },
+  electric: { class: 'type-electric', bg: 'bg-typeElectric' },
+  ice: { class: 'type-ice', bg: 'bg-typeIce' },
+  fighting: { class: 'type-fighting', bg: 'bg-typeFighting' },
+  poison: { class: 'type-poison', bg: 'bg-typePoison' },
+  ground: { class: 'type-ground', bg: 'bg-typeGround' },
+  flying: { class: 'type-flying', bg: 'bg-typeFlying' },
+  psychic: { class: 'type-psychic', bg: 'bg-typePsychic' },
+  bug: { class: 'type-bug', bg: 'bg-typeBug' },
+  rock: { class: 'type-rock', bg: 'bg-typeRock' },
+  ghost: { class: 'type-ghost', bg: 'bg-typeGhost' },
+  dragon: { class: 'type-dragon', bg: 'bg-typeDragon' },
+  dark: { class: 'type-dark', bg: 'bg-typeDark' },
+  steel: { class: 'type-steel', bg: 'bg-typeSteel' },
+  fairy: { class: 'type-fairy', bg: 'bg-typeFairy' },
 };
 
-// Função para formatar o número do Pokémon
+// Função para formatar o número do Pokémon (mantido)
 const formatPokemonNumber = (id) => {
   return `Nº ${String(id).padStart(4, '0')}`;
 };
 
-// Componente para exibir as estatísticas com barras visuais
+// Função para capitalizar a primeira letra (mantido)
+const capitalize = (s) => s ? s.charAt(0).toUpperCase() + s.slice(1).replace('-', ' ') : '';
+
+// Componente para exibir as estatísticas com barras visuais (mantido)
 const StatBar = ({ name, value }) => {
-  // Valor máximo para estatísticas de Pokémon é geralmente 255
   const percentage = Math.min(100, (value / 255) * 100);
-  
-  // Determinar a cor da barra baseada no valor
   let barColor = 'bg-red-500';
-  if (value > 150) barColor = 'bg-green-500';
-  else if (value > 80) barColor = 'bg-yellow-500';
-  
+  if (value >= 120) barColor = 'bg-green-500';
+  else if (value >= 90) barColor = 'bg-yellow-500';
+  else if (value >= 60) barColor = 'bg-orange-500';
+
   return (
     <div className="mb-2">
       <div className="flex justify-between mb-1">
-        <span className="text-sm font-medium text-gray-700 capitalize">{name}</span>
+        <span className="text-sm font-medium text-gray-700 capitalize">{capitalize(name)}</span>
         <span className="text-sm font-medium text-gray-700">{value}</span>
       </div>
       <div className="w-full bg-gray-200 rounded-full h-2.5">
-        <div 
-          className={`${barColor} h-2.5 rounded-full transition-all duration-1000 ease-out`} 
+        <div
+          className={`${barColor} h-2.5 rounded-full transition-all duration-1000 ease-out`}
           style={{ width: `${percentage}%` }}
         ></div>
       </div>
@@ -57,39 +59,40 @@ const StatBar = ({ name, value }) => {
   );
 };
 
-// Componente para exibir a linha evolutiva
+// Componente para exibir a linha evolutiva (mantido)
 const EvolutionChain = ({ evolutionData, currentPokemonId }) => {
   if (!evolutionData || evolutionData.length === 0) {
     return (
       <div className="text-center text-gray-500 py-4">
-        Informações evolutivas não disponíveis
+        Informações evolutivas não disponíveis.
       </div>
     );
   }
 
   return (
-    <div className="flex flex-wrap justify-center items-center gap-4">
+    <div className="flex flex-wrap justify-center items-center gap-4 md:gap-8">
       {evolutionData.map((pokemon, index) => {
         const isCurrentPokemon = pokemon.id === parseInt(currentPokemonId);
-        
+
         return (
-          <div key={pokemon.id} className="flex flex-col items-center">
+          <div key={pokemon.id} className="flex items-center">
             {index > 0 && (
-              <div className="flex items-center justify-center h-8 mb-2">
+              <div className="flex items-center justify-center mx-2 md:mx-4">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                 </svg>
               </div>
             )}
             <Link href={`/home/${pokemon.id}`}>
-              <div className={`p-4 rounded-lg ${isCurrentPokemon ? 'bg-pokeRed bg-opacity-10 border-2 border-pokeRed' : 'bg-gray-100 hover:bg-gray-200'} transition-colors duration-300 flex flex-col items-center`}>
-                <img 
-                  src={pokemon.image} 
-                  alt={pokemon.name} 
-                  className="w-24 h-24 object-contain"
+              <div className={`p-3 rounded-lg ${isCurrentPokemon ? 'bg-pokeRed bg-opacity-10 border-2 border-pokeRed' : 'bg-gray-100 hover:bg-gray-200'} transition-colors duration-300 flex flex-col items-center text-center w-28 md:w-32`}>
+                <img
+                  src={pokemon.image || '/placeholder.png'}
+                  alt={pokemon.name}
+                  className="w-20 h-20 md:w-24 md:h-24 object-contain mb-1"
+                  onError={(e) => { e.target.onerror = null; e.target.src='/placeholder.png'; }}
                 />
-                <p className="text-sm text-gray-500 mt-1">{formatPokemonNumber(pokemon.id)}</p>
-                <p className="font-semibold mt-1 capitalize">{pokemon.name}</p>
+                <p className="text-xs text-gray-500">{formatPokemonNumber(pokemon.id)}</p>
+                <p className="font-semibold text-sm mt-1 capitalize truncate w-full">{capitalize(pokemon.name)}</p>
               </div>
             </Link>
           </div>
@@ -99,95 +102,60 @@ const EvolutionChain = ({ evolutionData, currentPokemonId }) => {
   );
 };
 
-export default function PokemonDetails({ params }) {
+// Remover 'params' das props, usar useParams()
+export default function PokemonDetails() {
+  const params = useParams(); // Usar o hook useParams
   const [pokemonData, setPokemonData] = useState(null);
-  const [evolutionChain, setEvolutionChain] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currentId, setCurrentId] = useState(null);
 
   useEffect(() => {
+    // Acessar o id diretamente do objeto retornado por useParams
+    const idParam = params?.id;
+
+    if (!idParam) {
+      setError("ID do Pokémon inválido.");
+      setLoading(false);
+      return;
+    }
+
+    const id = parseInt(idParam);
+    if (isNaN(id)) {
+       setError("ID do Pokémon inválido.");
+       setLoading(false);
+       return;
+    }
+    setCurrentId(id);
+
     const fetchData = async () => {
       try {
         setLoading(true);
-        const data = await fetchGameDetails(params.id);
-        
-        if (!data || data.error) {
-          setError("Erro ao carregar os detalhes do Pokémon.");
-          setLoading(false);
-          return;
+        setError(null);
+        const data = await fetchGameDetails(id);
+
+        if (!data) {
+          setError("Pokémon não encontrado ou erro ao carregar detalhes.");
+        } else {
+          setPokemonData(data);
         }
-        
-        setPokemonData(data);
-        
-        // Buscar a cadeia evolutiva
-        if (data.species_url) {
-          try {
-            const speciesResponse = await fetch(data.species_url);
-            const speciesData = await speciesResponse.json();
-            
-            if (speciesData.evolution_chain && speciesData.evolution_chain.url) {
-              const evolutionResponse = await fetch(speciesData.evolution_chain.url);
-              const evolutionData = await evolutionResponse.json();
-              
-              // Processar a cadeia evolutiva
-              const chain = [];
-              
-              // Adicionar o primeiro Pokémon da cadeia
-              if (evolutionData.chain) {
-                const baseSpecies = evolutionData.chain.species;
-                const baseId = getIdFromUrl(baseSpecies.url);
-                
-                chain.push({
-                  id: baseId,
-                  name: baseSpecies.name,
-                  image: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${baseId}.png`
-                });
-                
-                // Adicionar evoluções
-                let currentEvolution = evolutionData.chain.evolves_to;
-                while (currentEvolution && currentEvolution.length > 0) {
-                  const evolution = currentEvolution[0];
-                  const evolutionId = getIdFromUrl(evolution.species.url);
-                  
-                  chain.push({
-                    id: evolutionId,
-                    name: evolution.species.name,
-                    image: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${evolutionId}.png`
-                  });
-                  
-                  currentEvolution = evolution.evolves_to;
-                }
-              }
-              
-              setEvolutionChain(chain);
-            }
-          } catch (err) {
-            console.error("Erro ao buscar cadeia evolutiva:", err);
-          }
-        }
-        
-        setLoading(false);
       } catch (err) {
-        setError("Erro ao carregar os detalhes do Pokémon.");
+        console.error("Erro ao carregar detalhes:", err);
+        setError("Ocorreu um erro ao buscar os detalhes do Pokémon.");
+      } finally {
         setLoading(false);
       }
     };
-    
+
     fetchData();
-  }, [params.id]);
-  
-  // Função auxiliar para extrair o ID da URL
-  const getIdFromUrl = (url) => {
-    const matches = url.match(/\/(\d+)\//);
-    return matches ? parseInt(matches[1]) : null;
-  };
+  }, [params?.id]); // Dependência continua sendo o id do params
 
   if (loading) {
     return (
       <div className="min-h-screen bg-white py-12 px-6 flex justify-center items-center">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-pokeRed"></div>
-          <p className="mt-2 text-gray-600">Carregando detalhes do Pokémon...</p>
+          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-pokeRed mx-auto mb-4"></div>
+          <p className="text-gray-600">Carregando detalhes do Pokémon...</p>
         </div>
       </div>
     );
@@ -195,143 +163,204 @@ export default function PokemonDetails({ params }) {
 
   if (error || !pokemonData) {
     return (
-      <div className="text-white text-center p-6 bg-pokeRed rounded-lg max-w-md mx-auto mt-12">
-        <p className="font-semibold text-xl">{error || "Erro ao carregar os detalhes do Pokémon."}</p>
-        <Link href="/home">
-          <button className="mt-4 text-white bg-pokeBlue hover:bg-opacity-90 rounded-lg px-6 py-2 transition-colors">
-            Voltar para a Pokédex
-          </button>
-        </Link>
+      <div className="min-h-screen bg-white py-12 px-6 flex justify-center items-center">
+        <div className="text-center p-6 bg-red-100 border border-red-400 text-red-700 rounded-lg max-w-md mx-auto">
+          <p className="font-semibold text-xl mb-4">{error || "Erro desconhecido."}</p>
+          <Link href="/home">
+            <button className="bg-pokeRed text-white hover:bg-opacity-90 rounded-lg px-6 py-2 transition-colors">
+              Voltar para a Pokédex
+            </button>
+          </Link>
+        </div>
       </div>
     );
   }
 
-  // Extrair os tipos do Pokémon (se disponíveis)
-  const types = pokemonData.description_raw ? 
-    pokemonData.description_raw.split('\n\n')[0].replace('Tipos: ', '').split(', ') : 
-    [];
+  // Extrair dados para facilitar o uso
+  const {
+    name,
+    id: pokemonIdValue,
+    background_image,
+    types = [],
+    height,
+    weight,
+    abilities = [],
+    stats = [],
+    description,
+    generation,
+    habitat,
+    moves = [],
+    evolution_chain = []
+  } = pokemonData;
 
-  // Extrair as estatísticas (se disponíveis)
-  const statsText = pokemonData.description_raw ? 
-    pokemonData.description_raw.split('Estatísticas:\n')[1] : 
-    '';
-  
-  const stats = statsText ? 
-    statsText.split('\n').map(stat => {
-      const [name, value] = stat.split(': ');
-      return { name, value: parseInt(value) || 0 };
-    }) : 
-    [];
+  // Determinar a cor principal baseada no primeiro tipo com verificação
+  const mainType = types && types.length > 0 && types[0]?.name ? types[0].name.toLowerCase() : 'normal';
+  const mainBgColor = typeStyles[mainType]?.bg || 'bg-gray-500';
 
-  // Extrair as habilidades (se disponíveis)
-  const abilitiesText = pokemonData.description_raw ? 
-    pokemonData.description_raw.split('\n\n')[1].replace('Habilidades: ', '') : 
-    '';
-
-  // Determinar o ID do próximo e do anterior Pokémon
-  const currentId = parseInt(params.id);
+  // Determinar IDs de navegação (mantido)
   const prevId = currentId > 1 ? currentId - 1 : null;
-  const nextId = currentId < 898 ? currentId + 1 : null;
+  const maxPokemonId = 1025;
+  const nextId = currentId < maxPokemonId ? currentId + 1 : null;
 
   return (
-    <div className="min-h-screen py-12 px-6 bg-white">
-      <div className="max-w-4xl mx-auto bg-white rounded-xl overflow-hidden shadow-pokemon-card">
-        {/* Cabeçalho com número e nome */}
-        <div className="bg-pokeRed text-white p-4 flex justify-between items-center">
-          <h1 className="text-3xl font-bold capitalize">{pokemonData.name}</h1>
-          <span className="text-xl font-semibold">{formatPokemonNumber(pokemonData.id)}</span>
+    <div className="min-h-screen py-8 md:py-12 px-4 bg-gray-100">
+      {/* Navegação Superior (mantida) */}
+      <div className="max-w-5xl mx-auto mb-4 flex justify-between items-center">
+        {prevId ? (
+          <Link href={`/home/${prevId}`} className="flex items-center text-gray-600 hover:text-pokeRed transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+            </svg>
+            {formatPokemonNumber(prevId)}
+          </Link>
+        ) : <div></div>}
+        <Link href="/home" className="text-gray-600 hover:text-pokeRed transition-colors font-semibold">
+          Voltar à Pokédex
+        </Link>
+        {nextId ? (
+          <Link href={`/home/${nextId}`} className="flex items-center text-gray-600 hover:text-pokeRed transition-colors">
+            {formatPokemonNumber(nextId)}
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+            </svg>
+          </Link>
+        ) : <div></div>}
+      </div>
+
+      {/* Card Principal (mantido) */}
+      <div className={`max-w-5xl mx-auto bg-white rounded-xl overflow-hidden shadow-lg border-t-8 ${mainBgColor.replace('bg-', 'border-')}`}>
+        {/* Cabeçalho com número e nome (mantido) */}
+        <div className="p-4 md:p-6 flex flex-col sm:flex-row justify-between items-center bg-gray-50 border-b border-gray-200">
+          <h1 className="text-3xl md:text-4xl font-bold capitalize text-gray-800 mb-2 sm:mb-0">{capitalize(name)}</h1>
+          <span className={`text-xl font-semibold px-3 py-1 rounded-full text-white ${mainBgColor}`}>{formatPokemonNumber(pokemonIdValue)}</span>
         </div>
-        
-        {/* Imagem e informações básicas */}
-        <div className="p-6 md:flex">
-          <div className="md:w-1/2 flex justify-center items-center p-4">
-            <img 
-              src={pokemonData.background_image} 
-              alt={pokemonData.name} 
-              className="max-w-full max-h-80 object-contain transform hover:scale-105 transition-transform duration-300"
-            />
+
+        {/* Conteúdo Principal (Grid) (mantido) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 md:p-8">
+          {/* Coluna Esquerda: Imagem e Descrição (mantida) */}
+          <div className="flex flex-col items-center">
+            <div className="relative w-full max-w-xs mb-6">
+              <img
+                src={background_image || '/placeholder.png'}
+                alt={name}
+                className="w-full h-auto object-contain transform group-hover:scale-105 transition-transform duration-300 drop-shadow-lg"
+                onError={(e) => { e.target.onerror = null; e.target.src='/placeholder.png'; }}
+              />
+            </div>
+            <div className="bg-gray-100 p-4 rounded-lg w-full">
+              <h2 className="text-lg font-semibold mb-2 text-gray-700">Descrição</h2>
+              <p className="text-gray-600 text-sm leading-relaxed">{description || "Descrição não disponível."}</p>
+            </div>
           </div>
-          
-          <div className="md:w-1/2 p-4">
-            <div className="mb-6">
-              <h2 className="text-xl font-bold mb-2">Tipos</h2>
-              <div className="flex flex-wrap gap-2">
-                {types.map((type, index) => (
-                  <Link href={`/tipos`} key={index}>
-                    <span 
-                      className={`pokemon-type ${typeClasses[type.toLowerCase()] || 'type-normal'} cursor-pointer`}
-                    >
-                      {type}
-                    </span>
-                  </Link>
-                ))}
+
+          {/* Coluna Direita: Informações, Habilidades, Tipos, Stats (mantida) */}
+          <div>
+            {/* Informações Básicas (mantida) */}
+            <div className="mb-6 bg-blue-50 p-4 rounded-lg border border-blue-200">
+              <h2 className="text-xl font-bold mb-3 text-blue-800">Informações Básicas</h2>
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <div><strong className="text-gray-600">Altura:</strong> {height ? `${height} m` : '?'}</div>
+                <div><strong className="text-gray-600">Peso:</strong> {weight ? `${weight} kg` : '?'}</div>
+                <div><strong className="text-gray-600">Geração:</strong> {generation ? capitalize(generation.replace('generation-', '')) : '?'}</div>
+                <div><strong className="text-gray-600">Habitat:</strong> {habitat && habitat !== 'unknown' ? capitalize(habitat) : '?'}</div>
               </div>
             </div>
-            
+
+            {/* Tipos (mantida) */}
             <div className="mb-6">
-              <h2 className="text-xl font-bold mb-2">Informações</h2>
-              <p className="text-gray-700 mb-2">{pokemonData.released}</p>
-              <p className="text-gray-700">{pokemonData.rating}</p>
+              <h2 className="text-xl font-bold mb-3 text-gray-700">Tipos</h2>
+              <div className="flex flex-wrap gap-2">
+                {types.map((typeInfo) => (
+                  <span
+                    key={typeInfo.name}
+                    className={`pokemon-type ${typeStyles[typeInfo.name.toLowerCase()]?.class || 'type-normal'}`}
+                  >
+                    {capitalize(typeInfo.name)}
+                  </span>
+                ))}
+                {types.length === 0 && <span className="text-gray-500 text-sm">Nenhum tipo definido.</span>}
+              </div>
             </div>
-            
+
+            {/* Habilidades (mantida) */}
             <div className="mb-6">
-              <h2 className="text-xl font-bold mb-2">Habilidades</h2>
-              <p className="text-gray-700">{abilitiesText}</p>
+              <h2 className="text-xl font-bold mb-3 text-gray-700">Habilidades</h2>
+              <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
+                {abilities.map((abilityInfo) => (
+                  <li key={abilityInfo.name}>
+                    {capitalize(abilityInfo.name)}
+                    {abilityInfo.is_hidden && <span className="text-xs text-gray-500 ml-1">(Oculta)</span>}
+                  </li>
+                ))}
+                {abilities.length === 0 && <li className="list-none text-gray-500">Nenhuma habilidade listada.</li>}
+              </ul>
+            </div>
+
+            {/* Estatísticas (mantida) */}
+            <div>
+              <h2 className="text-xl font-bold mb-3 text-gray-700">Estatísticas Base</h2>
+              {stats.map((stat) => (
+                <StatBar key={stat.name} name={stat.name} value={stat.value} />
+              ))}
+              {stats.length === 0 && <p className="text-gray-500 text-sm">Estatísticas não disponíveis.</p>}
             </div>
           </div>
         </div>
-        
-        {/* Linha Evolutiva */}
-        <div className="p-6 bg-white border-t border-gray-200">
-          <h2 className="text-2xl font-bold mb-6 text-center">Linha Evolutiva</h2>
-          <EvolutionChain evolutionData={evolutionChain} currentPokemonId={params.id} />
+
+        {/* Linha Evolutiva (mantida) */}
+        <div className="p-6 md:p-8 bg-gray-50 border-t border-gray-200">
+          <h2 className="text-2xl font-bold mb-6 text-center text-gray-700">Linha Evolutiva</h2>
+          <EvolutionChain evolutionData={evolution_chain} currentPokemonId={currentId} />
         </div>
-        
-        {/* Estatísticas */}
-        <div className="p-6 bg-gray-50">
-          <h2 className="text-2xl font-bold mb-4">Estatísticas</h2>
-          <div className="max-w-md mx-auto">
-            {stats.map((stat, index) => (
-              <StatBar key={index} name={stat.name} value={stat.value} />
-            ))}
-          </div>
+
+        {/* Movimentos (mantida) */}
+        <div className="p-6 md:p-8 bg-white border-t border-gray-200">
+           <h2 className="text-2xl font-bold mb-4 text-gray-700">Alguns Movimentos</h2>
+           {moves.length > 0 ? (
+             <div className="flex flex-wrap gap-2">
+               {moves.map((move) => (
+                 <span key={move.name} className="bg-gray-200 text-gray-700 text-xs px-3 py-1 rounded-full capitalize">
+                   {capitalize(move.name)}
+                 </span>
+               ))}
+             </div>
+           ) : (
+             <p className="text-gray-500 text-sm">Nenhum movimento listado.</p>
+           )}
         </div>
-        
-        {/* Navegação entre Pokémon */}
-        <div className="p-6 bg-gray-100 flex justify-between">
-          {prevId ? (
-            <Link href={`/home/${prevId}`}>
-              <button className="bg-pokeBlue text-white px-4 py-2 rounded-lg hover:bg-opacity-90 transition-colors flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
-                Anterior
-              </button>
-            </Link>
-          ) : (
-            <div></div>
-          )}
-          
-          <Link href="/home">
-            <button className="bg-pokeRed text-white px-6 py-2 rounded-lg hover:bg-opacity-90 transition-colors">
-              Voltar para a Pokédex
-            </button>
-          </Link>
-          
-          {nextId ? (
-            <Link href={`/home/${nextId}`}>
-              <button className="bg-pokeBlue text-white px-4 py-2 rounded-lg hover:bg-opacity-90 transition-colors flex items-center">
-                Próximo
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                </svg>
-              </button>
-            </Link>
-          ) : (
-            <div></div>
-          )}
+
+        {/* Navegação Inferior (mantida) */}
+        <div className="p-4 bg-gray-100 border-t border-gray-200 flex justify-between items-center">
+           {prevId ? (
+             <Link href={`/home/${prevId}`} className="bg-pokeBlue text-white px-4 py-2 rounded-lg hover:bg-opacity-90 transition-colors flex items-center text-sm">
+               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                 <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+               </svg>
+               Anterior
+             </Link>
+           ) : (
+             <div className="w-24"></div>
+           )}
+
+           <Link href="/home">
+             <button className="bg-pokeRed text-white px-5 py-2 rounded-lg hover:bg-opacity-90 transition-colors text-sm">
+               Voltar à Pokédex
+             </button>
+           </Link>
+
+           {nextId ? (
+             <Link href={`/home/${nextId}`} className="bg-pokeBlue text-white px-4 py-2 rounded-lg hover:bg-opacity-90 transition-colors flex items-center text-sm">
+               Próximo
+               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" viewBox="0 0 20 20" fill="currentColor">
+                 <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+               </svg>
+             </Link>
+           ) : (
+             <div className="w-24"></div>
+           )}
         </div>
       </div>
     </div>
   );
 }
+
