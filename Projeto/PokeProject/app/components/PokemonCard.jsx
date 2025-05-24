@@ -148,8 +148,12 @@ export default function PokemonCard({ pokemon }) {
             </div>
           </div>
           <div className="text-center mt-1 pt-1 border-t border-gray-100">
-             <span className="font-semibold block">Habilidade</span>
-             <span className="truncate" title={firstAbilityName}>{firstAbilityName}</span>
+             <span className="font-semibold block">Habilidades</span>
+             <span className="truncate block text-xs" title={pokemon.abilities?.map(a => capitalize(a.name)).join(', ') || 'N/A'}>
+               {pokemon.abilities && pokemon.abilities.length > 0
+                 ? pokemon.abilities.map(a => capitalize(a.name)).join(', ')
+                 : 'N/A'}
+             </span>
           </div>
         </div>
 
