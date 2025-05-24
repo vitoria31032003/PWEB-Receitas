@@ -1,64 +1,52 @@
 <!DOCTYPE html>
 
-<html>   
+<html lang="pt-BR">
 
 <head>
+    
+    <meta charset="UTF-8">
 
-    <link href="style.css" rel="stylesheet">
+    <title>CSS Básico</title>
+
+    <link rel="stylesheet" href="style.css">
 
 </head>
 
-     <title>CSS Básico</title>
-
 <body>
 
-    <p class="verso">Já não tenho meus dentes naturais</p>
-    <p class="verso">Que comi rapadura com biscoito</p>
-    <p class="verso">Cadê minha pressão 12 por 8</p>
-    <p class="verso">Que no peito não tá batendo mais</p>
-    <p class="verso">Dou um passo pra frente e dois pra trás</p>
-    <p class="verso">E assim mesmo com pouca habilidade</p>
-    <p class="verso">Que as feridas deixadas pela idade</p>
-    <p class="verso">Não se curam com pano de compressa</p>
-    <p class="mote">Vi a vida passando tão depressa</p>
-    <p class="mote">Que nem lembro que tive mocidade</p>
+    <img src="https://paraibacriativa.com.br/wp-content/uploads/2015/09/Repente_Jo--o-Paraibano.jpg" alt="João Paraibano" class="avatar">
 
-    <br/>
+    <h1>Versos de João Paraibano</h1>
 
-    <div class="poeta">
-        
-        <img class="avatar" src="https://paraibacriativa.com.br/wp-content/uploads/2015/09/Repente_Jo--o-Paraibano.jpg" alt="Pessoa">
-
-        <p>
-
-            <a class="link-poeta" href="https://www.google.com/search?q=Jo%C3%A3o+Paraibano" target="_blank">João Paraibano</a>
-            
-        </p>
-
+    <div class="versos">
+        <p class="verso">Já não tenho meus dentes naturais</p>
+        <p class="verso">Que comi rapadura com biscoito</p>
+        <p class="verso">Cadê minha pressão 12 por 8</p>
+        <p class="verso">Que no peito não tá batendo mais</p>
+        <p class="verso">Dou um passo pra frente e dois pra trás</p>
+        <p class="verso">E assim mesmo com pouca habilidade</p>
+        <p class="verso">Que as feridas deixadas pela idade</p>
+        <p class="verso">Não se curam com pano de compressa</p>
+        <p class="mote">Vi a vida passando tão depressa</p>
+        <p class="mote">Que nem lembro que tive mocidade</p>
     </div>
 
-    <br/>
+    <p>
+        Autor: 
+        <a class="link-poeta" href="https://www.google.com/search?q=Jo%C3%A3o+Paraibano" target="_blank">João Paraibano</a>
+    </p>
 
-    <div id="link-container">
-
-        <a class="link-button" href="https://paraibacriativa.com.br/artista/joao-paraibano/" target="_blank">João Paraibano</a>
-
-    </div>
-
-    <div id="tabela-container">
+    <div class="tables-container">
 
         <table>
 
             <caption>Cervejas</caption>
-
+            
             <thead>
 
                 <tr>
-
-                    <th scope="col">Nomes</th>
-
-                    <th scope="col">Link</th>
-
+                    <th>Nome</th>
+                    <th>Link</th>
                 </tr>
 
             </thead>
@@ -68,27 +56,52 @@
                 <tr>
 
                     <td>Budweiser</td>
-
-                    <td><a class="link-cervejas" href="https://www.budweiser.com/" target="_blank">https://www.budweiser.com/</a></td>
-
+                    <td><a class="link-cervejas" href="https://www.budweiser.com/" target="_blank">budweiser.com</a></td>
                 </tr>
 
                 <tr>
 
                     <td>Bohemia</td>
-
-                    <td><a class="link-cervejas" href="https://www.bohemiapuromalte.com.br/" target="_blank">https://www.bohemiapuromalte.com.br/</a></td>
-
+                    <td><a class="link-cervejas" href="https://www.bohemiapuromalte.com.br/" target="_blank">bohemiapuromalte.com.br</a></td>
                 </tr>
 
                 <tr>
                     <td>Skol</td>
+                    <td><a class="link-cervejas" href="https://www.skol.com.br/" target="_blank">skol.com.br</a></td>
+               
+                </tr>
+            </tbody>
+        </table>
 
-                    <td><a class="link-cervejas" href="https://www.skol.com.br/" target="_blank">https://www.skol.com.br/</a></td>
-                    
+        <table>
+            <caption>Sucos</caption>
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Preço</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Suco de Laranja</td>
+                    <td>R$ 6,00</td>
+                </tr>
+                <tr>
+                    <td>Suco de Uva</td>
+                    <td>R$ 5,50</td>
+                </tr>
+                <tr>
+                    <td>Suco de Maracujá</td>
+                    <td>R$ 7,00</td>
                 </tr>
             </tbody>
         </table>
     </div>
+
+    <div class="links">
+        <a class="buttonLink" href="https://www.youtube.com/watch?v=QtXby3twMmI" target="_blank">YOUTUBE</a>
+        <a class="buttonLink" href="https://paraibacriativa.com.br/artista/joao-paraibano/" target="_blank">SAIBA MAIS</a>
+    </div>
+
 </body>
 </html>
