@@ -13,7 +13,6 @@ h1 {
   margin-bottom: 20px;
 }
 
-/* Botão estilizado como os links do exemplo dos sorvetes */
 #botaoCarregar {
   display: inline-block;
   margin: 20px;
@@ -42,7 +41,7 @@ h1 {
   opacity: 1;
 }
 
-/* (Opcional) Se você usar esse botão com ID #meu-amor1, ele herda os mesmos estilos */
+
 #meu-amor1 {
   display: inline-block;
   margin: 20px;
