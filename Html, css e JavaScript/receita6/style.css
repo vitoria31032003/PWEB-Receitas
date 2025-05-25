@@ -1,68 +1,99 @@
 body {
-    font-family: Arial, Helvetica, sans-serif;
-    align-items: center;
-    background-color: rgb(250, 189, 128);
- }
- 
- #meu-amor {
-    opacity: 0;
-    transition: opacity 1s;
-    text-align: center;
-    font-size: 500%;
- }
- 
- #meu-amor.exibir {
-    opacity: 1;
- }
- 
- #meu-amor1 {
-    display: block;
-    margin: 10px auto;
-    padding: 10px 20px;
-    font-size: 16px;
-    background-color: #e4540c;
-    color: aliceblue;
-    border: none;
-    border-radius: 20px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    text-align: center;
-    width: 200px;
- }
- 
- #meu-amor1:hover {
-    background-color: #ff6f3c;
- }
- 
- #cervejasDiv {
-    margin-top: 30px;
-    text-align: center;
- }
- 
- table {
-    margin: 0 auto;
-    border-collapse: collapse;
-    width: 60%;
-    background-color: #fff;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
- }
- 
- th {
-    background-color: #e4540c;
-    color: white;
-    padding: 15px;
-    font-size: 18px;
- }
- 
- td {
-    padding: 12px;
-    font-size: 16px;
-    border-bottom: 1px solid #ddd;
-    color: #333;
- }
- 
- tr:hover {
-    background-color: #ffe3cd;
- }
+  font-family: Arial, Helvetica, sans-serif;
+  background-color: #ADD8E6;
+  margin: 0;
+  padding: 0;
+  text-align: center;
+}
+
+h1 {
+  color: #00416A;
+  font-size: 2.5em;
+  margin-top: 30px;
+  margin-bottom: 20px;
+}
+
+/* Botão estilizado como os links do exemplo dos sorvetes */
+#botaoCarregar {
+  display: inline-block;
+  margin: 20px;
+  padding: 12px 24px;
+  font-size: 16px;
+  background-color: #00416A;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  text-align: center;
+}
+
+#botaoCarregar:hover {
+  background-color: #003354;
+}
+
+#meu-amor {
+  opacity: 0;
+  transition: opacity 1s;
+  font-size: 2.5em;
+}
+
+#meu-amor.exibir {
+  opacity: 1;
+}
+
+/* (Opcional) Se você usar esse botão com ID #meu-amor1, ele herda os mesmos estilos */
+#meu-amor1 {
+  display: inline-block;
+  margin: 20px;
+  padding: 12px 24px;
+  font-size: 16px;
+  background-color: #00416A;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  text-align: center;
+}
+
+#meu-amor1:hover {
+  background-color: #003354;
+}
+
+#cervejasDiv {
+  margin-top: 30px;
+  display: flex;
+  justify-content: center;
+}
+
+table {
+  width: 80%;
+  max-width: 800px;
+  border-collapse: collapse;
+  background-color: #F0F8FF;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+th, td {
+  padding: 14px;
+  text-align: center;
+  font-size: 1.1em;
+  border-bottom: 1px solid #ddd;
+}
+
+th {
+  background-color: #00416A;
+  color: white;
+}
+
+td {
+  background-color: #eaf6ff;
+  color: #333;
+}
+
+tr:hover td {
+  background-color: #d1e7f7;
+}
