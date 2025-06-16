@@ -147,6 +147,16 @@ export default function PokemonCard({ pokemon }) {
               <span>{weight}</span>
             </div>
           </div>
+          <div className="flex justify-around mt-1 pt-1 border-t border-gray-100">
+            <div className="text-center">
+              <span className="font-semibold block">Geração</span>
+              <span>{pokemon.generation ? capitalize(pokemon.generation.replace("generation-", "")) : "."}</span>
+            </div>
+            <div className="text-center">
+              <span className="font-semibold block">Habitat</span>
+              <span>{pokemon.habitat && pokemon.habitat !== "unknown" ? capitalize(pokemon.habitat) : "."}</span>
+            </div>
+          </div>
           <div className="text-center mt-1 pt-1 border-t border-gray-100">
              <span className="font-semibold block">Habilidades</span>
              <span className="truncate block text-xs" title={pokemon.abilities?.map(a => capitalize(a.name)).join(', ') || 'N/A'}>
@@ -155,6 +165,14 @@ export default function PokemonCard({ pokemon }) {
                  : 'N/A'}
              </span>
           </div>
+
+          {/* Linha Evolutiva - Simplificada */}
+          {pokemon.evolution_chain_url && (
+            <div className="text-center mt-1 pt-1 border-t border-gray-100">
+              <span className="font-semibold block text-xs">Linha Evolutiva</span>
+              <span className="text-xs text-gray-500">Disponível na página de detalhes</span>
+            </div>
+          )}
         </div>
 
         {/* Rodapé com tipos (acessando .name) */}

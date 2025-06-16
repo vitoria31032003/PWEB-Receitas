@@ -1,8 +1,7 @@
 import "../globals.css";
 
 export const metadata = {
-  title: "MorphGames",
-  description: "Publishers Page - MorphGames",
+  title: "Pokédex",
 };
 
 export default function PublishersLayout({ children }) {

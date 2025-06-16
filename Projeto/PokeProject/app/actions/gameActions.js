@@ -1,4 +1,3 @@
-
 'use server';
 
 import { cache } from 'react';
@@ -24,7 +23,16 @@ const fetchPokemonDetailsByUrl = async (url) => {
       return await processPokemonData(pokemonData);
     }
     const pokemonData = await detailResponse.json();
-    return await processPokemonData(pokemonData);
+    
+    let speciesData = null;
+    if (pokemonData.species?.url) {
+        try {
+            const speciesResponse = await fetch(pokemonData.species.url);
+            if (speciesResponse.ok) speciesData = await speciesResponse.json();
+        } catch (speciesError) { console.warn(`Erro ao buscar species data para ${pokemonData.name}:`, speciesError); }
+    }
+
+    return await processPokemonData(pokemonData, speciesData);
 
   } catch (error) {
     console.error(`Erro ao buscar detalhes do Pokémon ${url}:`, error);
@@ -33,19 +41,16 @@ const fetchPokemonDetailsByUrl = async (url) => {
 };
 
 // Processa dados brutos do Pokémon, busca species e retorna objeto padronizado
-const processPokemonData = async (pokemonData) => {
+const processPokemonData = async (pokemonData, speciesData = null) => {
     if (!pokemonData || !pokemonData.id) return null;
-    let speciesData = null;
-    try {
-        if (pokemonData.species?.url) {
-            const speciesResponse = await fetch(pokemonData.species.url);
-            if (speciesResponse.ok) {
-                speciesData = await speciesResponse.json();
-            }
-        }
-    } catch (speciesError) {
-        console.warn(`Erro ao buscar species data para ${pokemonData.name}:`, speciesError);
+    
+    let generation = null;
+    if (speciesData?.generation?.url) {
+        const genId = speciesData.generation.url.split("/").filter(Boolean).pop();
+        generation = `generation-${genId}`;
     }
+
+    let habitat = speciesData?.habitat?.name || 'unknown';
 
     return {
         id: pokemonData.id,
@@ -57,17 +62,17 @@ const processPokemonData = async (pokemonData) => {
         abilities: pokemonData.abilities?.map(a => a.ability) || [],
         stats: pokemonData.stats?.map(s => ({ name: s.stat.name, value: s.base_stat })) || [],
         moves: pokemonData.moves?.map(m => m.move) || [],
-        species: speciesData?.name || null,
+        species: pokemonData.species?.name || null,
         species_url: pokemonData.species?.url || null,
-        generation: speciesData?.generation?.name || null,
-        habitat: speciesData?.habitat?.name || 'unknown',
-        evolution_chain_url: speciesData?.evolution_chain?.url || null,
+        generation: generation,
+        habitat: habitat,
+        evolution_chain_url: pokemonData.species?.url ? pokemonData.species.url.replace("/pokemon-species/", "/pokemon-species/") : null,
         sprites: {
             front_default: pokemonData.sprites?.front_default || null,
             back_default: pokemonData.sprites?.back_default || null,
             front_shiny: pokemonData.sprites?.front_shiny || null,
             back_shiny: pokemonData.sprites?.back_shiny || null,
-            official_artwork: pokemonData.sprites?.other?.['official-artwork']?.front_default || null
+            official_artwork: pokemonData.sprites?.other?.["official-artwork"]?.front_default || null
         }
     };
 }
@@ -247,7 +252,7 @@ export const fetchPokemonByCategory = cache(async (categoryType, categoryValue, 
             }
         }
 
-        console.log(`[fetchPokemonByCategory - ${categoryType}=${categoryValue}] Found ${pokemonRefs.length} initial refs.`); // Log initial refs
+        console.log(`[fetchPokemonByCategory - ${categoryType}=${categoryValue}] Found ${pokemonRefs.length} initial refs.`);
         if (pokemonRefs.length === 0) return { pokemon: [], hasMore: false };
 
         let filteredRefs = pokemonRefs;
@@ -255,7 +260,6 @@ export const fetchPokemonByCategory = cache(async (categoryType, categoryValue, 
             filteredRefs = pokemonRefs.filter(ref => ref.name.toLowerCase().includes(sName.toLowerCase()));
         }
 
-        console.log(`[fetchPokemonByCategory - ${categoryType}=${categoryValue}] Refs after name filter (${sName}): ${filteredRefs.length}`); // Log refs after name filter
         const totalFiltered = filteredRefs.length;
         const paginatedRefs = filteredRefs.slice(offset, offset + limit);
         const hasMore = totalFiltered > (offset + limit);
@@ -264,25 +268,21 @@ export const fetchPokemonByCategory = cache(async (categoryType, categoryValue, 
 
         const detailPromises = paginatedRefs.map(ref => {
             let detailUrl = ref.url;
-            // IMPORTANTE: A API de Habilidade retorna URLs de Pokémon, não de Species
-            // if (detailUrl.includes('/pokemon-species/')) { // Esta verificação não é necessária para Habilidades
-            //     const speciesId = detailUrl.split('/').filter(Boolean).pop();
-            //     detailUrl = `https://pokeapi.co/api/v2/pokemon/${speciesId}`;
-            // }
+            // Para gerações e regiões, as URLs são de species, precisamos converter para pokemon
+            if (detailUrl.includes('/pokemon-species/')) {
+                const speciesId = detailUrl.split('/').filter(Boolean).pop();
+                detailUrl = `https://pokeapi.co/api/v2/pokemon/${speciesId}`;
+            }
             return fetchPokemonDetailsByUrl(detailUrl);
         });
 
-        console.log(`[fetchPokemonByCategory - ${categoryType}=${categoryValue}] Fetching details for ${detailPromises.length} refs...`); // Log detail fetch count
         let pokemonDetails = (await Promise.all(detailPromises)).filter(p => p !== null);
-        console.log(`[fetchPokemonByCategory - ${categoryType}=${categoryValue}] Fetched ${pokemonDetails.length} details successfully.`); // Log successful details count
 
         // Remover o filtro da categoria principal ANTES de aplicar filtros secundários
         const filterKeyToRemove = getFilterKeyForCategory(categoryType);
         const { [filterKeyToRemove]: _, ...remainingFilters } = otherFilters;
-        // console.log(`[fetchPokemonByCategory - ${categoryType}=${categoryValue}] Applying secondary filters:`, remainingFilters); // Log secondary filters being applied
 
         pokemonDetails = applySecondaryFilters(pokemonDetails, remainingFilters);
-        console.log(`[fetchPokemonByCategory - ${categoryType}=${categoryValue}] Details after secondary filters: ${pokemonDetails.length}`); // Log details after secondary filters
         const sortedPokemon = sortPokemonList(pokemonDetails, sOrdering);
 
         return { pokemon: sortedPokemon, hasMore };
@@ -334,8 +334,12 @@ export const fetchGameDetails = cache(async (id) => {
       if (pokemon.species_url) {
           try {
               const speciesResponse = await fetch(pokemon.species_url);
-              if (speciesResponse.ok) speciesData = await speciesResponse.json();
-          } catch (speciesError) { console.warn(`Erro ao buscar species data (detalhes):`, speciesError); }
+              if (speciesResponse.ok) {
+                  speciesData = await speciesResponse.json();
+              }
+          } catch (speciesError) { 
+              console.warn(`Erro ao buscar species data (detalhes):`, speciesError); 
+          }
       }
 
       let evolutionChainData = [];
@@ -353,7 +357,7 @@ export const fetchGameDetails = cache(async (id) => {
                           evolutionChainData.push({
                               id: parseInt(pokemonId),
                               name: evoPokemonDetails.name,
-                              imageUrl: evoPokemonDetails.background_image
+                              image: evoPokemonDetails.background_image
                           });
                       }
                       if (chain.evolves_to && chain.evolves_to.length > 0) {
@@ -362,7 +366,9 @@ export const fetchGameDetails = cache(async (id) => {
                   };
                   await processEvolutionChain(evolutionDataRaw.chain);
               }
-          } catch (evolutionError) { console.warn(`Erro ao buscar/processar cadeia de evolução:`, evolutionError); }
+          } catch (evolutionError) { 
+              console.warn(`Erro ao buscar/processar cadeia de evolução:`, evolutionError); 
+          }
       }
 
       // Buscar descrição (flavor text)
@@ -387,7 +393,7 @@ export const fetchGameDetails = cache(async (id) => {
         ...pokemon,
         description,
         genera,
-        evolutionChain: evolutionChainData
+        evolution_chain: evolutionChainData
       };
 
     } catch (error) {
@@ -396,4 +402,44 @@ export const fetchGameDetails = cache(async (id) => {
       return null;
     }
 });
+
+
+
+// Busca a cadeia evolutiva de um Pokémon (versão otimizada)
+const fetchEvolutionChain = async (url) => {
+    try {
+        if (!url) return [];
+        const response = await fetch(url);
+        if (!response.ok) {
+            console.warn(`Falha ao buscar cadeia evolutiva: ${url}, status: ${response.status}`);
+            return [];
+        }
+        const data = await response.json();
+        const evolutionChain = [];
+        
+        // Função recursiva para processar a cadeia
+        const processChain = (chain) => {
+            if (!chain?.species?.url) return;
+            
+            const speciesId = chain.species.url.split('/').filter(Boolean).pop();
+            evolutionChain.push({
+                id: parseInt(speciesId),
+                name: chain.species.name,
+                // Não buscar imagem aqui para melhorar performance
+                image: null
+            });
+            
+            // Processar evoluções
+            if (chain.evolves_to && chain.evolves_to.length > 0) {
+                chain.evolves_to.forEach(nextChain => processChain(nextChain));
+            }
+        };
+        
+        processChain(data.chain);
+        return evolutionChain;
+    } catch (error) {
+        console.error(`Erro ao buscar cadeia evolutiva ${url}:`, error);
+        return [];
+    }
+};
 
