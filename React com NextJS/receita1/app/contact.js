@@ -1,11 +1,6 @@
 import React from 'react';
+import { Contact } from '../page';
 
-export function Contact(){
-    return (
-       <div>
-          <h2>
-            Página contato
-          </h2>
-       </div>
-    )
+export default function ContactRoute() {
+    return <Contact />;
 }

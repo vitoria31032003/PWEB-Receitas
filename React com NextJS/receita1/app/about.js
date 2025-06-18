@@ -1,11 +1,6 @@
 import React from 'react';
+import { About } from '../page';
 
-export function About(){
-    return (
-       <div> 
-          <h2>
-            Página sobre
-          </h2>
-       </div>
-    )
+export default function AboutRoute() {
+    return <About />;
 }
