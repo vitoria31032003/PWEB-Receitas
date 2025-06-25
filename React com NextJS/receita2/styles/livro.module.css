@@ -1,0 +1,103 @@
+.containerLivro {
+  background: radial-gradient(
+    circle,
+    rgba(238, 174, 202, 1) 0%,
+    rgba(148, 187, 233, 1) 100%
+  );
+  padding: 50px 30px;
+  border-radius: 16px;
+  color: #fff;
+  max-width: 1200px;
+  margin: 60px auto;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.entreemlivro {
+  font-size: 40px;
+  font-style: italic;
+  margin-bottom: 10px;
+  text-align: center;
+  color: #ffffff;
+}
+
+.livroDetalhes {
+  display: flex;
+  flex-direction: row;
+  gap: 30px;
+  margin-top: 40px;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.livroInfo,
+.livroForm {
+  flex: 1 1 48%;
+  padding: 25px;
+  background-color: rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  backdrop-filter: blur(6px);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.livroInfo h2,
+.livroForm h2 {
+  font-size: 1.5rem;
+  margin-bottom: 15px;
+  border-bottom: 2px solid #ffffff33;
+  padding-bottom: 5px;
+}
+
+.livroInfo ul {
+  padding-left: 20px;
+  list-style-type: disc;
+  line-height: 1.6;
+}
+
+.label {
+  display: block;
+  margin-top: 15px;
+  margin-bottom: 5px;
+  font-weight: bold;
+  font-size: 0.95rem;
+}
+
+.inputField,
+.textArea {
+  width: 100%;
+  padding: 12px 14px;
+  margin-bottom: 15px;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  box-sizing: border-box;
+  background-color: #ffffff;
+  color: #333;
+}
+
+.inputField:focus,
+.textArea:focus {
+  outline: 2px solid #3498db;
+}
+
+.textArea {
+  resize: vertical;
+}
+
+.submitButton {
+  background-color: #ffffff;
+  color: #3498db;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  font-size: 1rem;
+}
+
+.submitButton:hover {
+  background-color: #3498db;
+  color: #fff;
+}

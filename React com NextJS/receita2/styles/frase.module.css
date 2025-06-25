@@ -1,0 +1,33 @@
+.botaoCarregar {
+  background-color: transparent;
+  color: white;
+  cursor: pointer;
+  font-size: 28px;
+  padding: 12px 24px;
+  border: 2px solid white;
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 150px auto 20px auto;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.botaoCarregar:hover {
+  background-color: white;
+  color: #222;
+}
+
+.fraseDiv {
+  padding: 40px;
+  background-color: rgba(255, 255, 255, 0.85);
+  font-size: 24px;
+  width: 60%;
+  max-width: 700px;
+  text-align: center;
+  border-radius: 10px;
+  margin: 20px auto;
+  color: #333;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}

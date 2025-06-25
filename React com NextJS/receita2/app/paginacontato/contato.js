@@ -1,6 +1,6 @@
 import React from 'react'; 
 import Navigation from '../../pages/navigation';
-import styles from '../../styles/contato\.module.css'; 
+import styles from '../../styles/contato.module.css'; 
 
 export default function Contato() {
     return (

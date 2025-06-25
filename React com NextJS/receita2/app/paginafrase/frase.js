@@ -1,6 +1,6 @@
 import React from 'react';
 import Navigation from '../navigation';
-import styles from '../../styles/conselho.module.css';
+import styles from '../../styles/frase.module.css'; 
 
 export default function Sobre() {
     const click = () => {
@@ -13,7 +13,7 @@ export default function Sobre() {
             <button id="botaoCarregar" className={styles.botaoCarregar} onClick={click}>
                 Carregar frase do Kanye West
             </button>
-            <div id="conselhoDiv" className={styles.conselhoDiv}></div>
+            <div id="fraseDiv" className={styles.fraseDiv}></div> 
         </div>
     );
 }
@@ -23,9 +23,9 @@ async function carregarFraseKanye() {
         const res = await fetch("https://api.kanye.rest/");
         const resposta = await res.json();
 
-        const div = document.getElementById("conselhoDiv");
+        const div = document.getElementById("fraseDiv"); 
         div.innerHTML = `"${resposta.quote}" — Kanye West`;
     } catch (err) {
-        document.getElementById("conselhoDiv").innerHTML = "Erro ao carregar frase da API.";
+        document.getElementById("fraseDiv").innerHTML = "Erro ao carregar frase da API.";
     }
 }
