@@ -1,5 +1,5 @@
 .pageContainer {
-  background-color: #f0f0f0; 
+  background-color: #f0f0f0;
   padding: 20px;
   display: flex;
   flex-direction: column;
@@ -11,38 +11,67 @@
   flex-wrap: wrap;
   gap: 20px;
   justify-content: center;
+  margin-top: 20px;
 }
 
 .movieCard {
   width: 300px;
-  background-color: #ffffff; 
-  border: 1px solid #e0e0e0; 
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
   padding: 20px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+.movieCard img {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+
 .searchButton {
-  background-color: #007bff; 
+  background-color: #007bff;
   color: white;
   padding: 10px 20px;
   border: none;
   cursor: pointer;
   margin-top: 10px;
+  border-radius: 4px;
+  font-weight: bold;
 }
 
 .movieText {
-  font-size: 18px; 
+  font-size: 18px;
   margin-top: 10px;
-  color: #333; 
+  color: #333;
   text-align: center;
 }
 
-.movieLink {
-  text-decoration: none;
-  color: #007bff; 
+.recado {
+  font-size: 14px;
+  color: #555;
+  margin-top: 5px;
+  margin-bottom: 10px;
 }
 
-.movieLink {
-  display: block;
-  text-align: center;
+.yearInput,
+.selectInput {
+  margin: 5px;
+  padding: 8px 10px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.loading {
+  margin-top: 20px;
+  font-size: 18px;
+  color: #666;
+  font-style: italic;
+}
+
+.noResults {
+  margin-top: 20px;
+  font-size: 18px;
+  color: #c00;
+  font-weight: bold;
 }
