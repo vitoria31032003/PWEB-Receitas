@@ -1,0 +1,20 @@
+{
+  "name": "pweb-receitas",
+  "version": "1.0.0",
+  "description": "Repositório destinado à publicação das receitas passadas na disciplina de Programação Web",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vitoria31032003/PWEB-Receitas.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/vitoria31032003/PWEB-Receitas/issues"
+  },
+  "homepage": "https://github.com/vitoria31032003/PWEB-Receitas#readme"
+}
