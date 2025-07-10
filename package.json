@@ -4,6 +4,7 @@
   "description": "Repositório destinado à publicação das receitas passadas na disciplina de Programação Web",
   "main": "index.js",
   "scripts": {
+    "dev": "vite",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -16,5 +17,8 @@
   "bugs": {
     "url": "https://github.com/vitoria31032003/PWEB-Receitas/issues"
   },
-  "homepage": "https://github.com/vitoria31032003/PWEB-Receitas#readme"
+  "homepage": "https://github.com/vitoria31032003/PWEB-Receitas#readme",
+  "devDependencies": {
+    "vite": "^7.0.4"
+  }
 }
