@@ -66,14 +66,20 @@ export default function Movies({ data }) {
 
 export async function getServerSideProps(context) {
   const { query } = context;
-  const searchQuery = query.q || 'bagdad';
+  const searchQuery = query.q || '';
+  const year = query.y || '';
+  const type = query.type || '';
 
-  const res = await fetch(`http://www.omdbapi.com/?apikey=f189dce7&s=${searchQuery}`);
+  const res = await fetch(`http://www.omdbapi.com/?apikey=f189dce7&s=${searchQuery}&y=${year}&type=${type}`);
   const data = await res.json();
 
   return {
     props: {
       data,
+      initialQuery: searchQuery,
+      initialYear: year,
+      initialType: type
     },
   };
 }
+
