@@ -1,0 +1,92 @@
+.pageContainer {
+  background-color: #f0f0f0;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.moviesContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.movieCard {
+  width: 300px;
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.movieCard img {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+
+.movieText {
+  font-size: 18px;
+  margin-top: 10px;
+  color: #333;
+  text-align: center;
+}
+
+.loading {
+  margin-top: 20px;
+  font-size: 18px;
+  color: #666;
+  font-style: italic;
+}
+
+.noResults {
+  margin-top: 20px;
+  font-size: 18px;
+  color: #c00;
+  font-weight: bold;
+}
+
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  width: 100%;
+  max-width: 500px;
+}
+
+form label {
+  font-weight: bold;
+  color: #333;
+}
+
+form input,
+form select {
+  padding: 10px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+form button {
+  background-color: #007bff;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  cursor: pointer;
+  margin-top: 10px;
+  border-radius: 4px;
+  font-weight: bold;
+  transition: background-color 0.3s;
+}
+
+form button:hover {
+  background-color: #0056b3;
+}
